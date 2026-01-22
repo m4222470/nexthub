@@ -25,6 +25,17 @@ export default function ClientApp({ }: ClientAppProps) {
       setTheme(savedTheme)
       document.documentElement.setAttribute('data-theme', savedTheme)
     }
+    
+    // ✅ تحديث أيقونة الثيم بناءً على الثيم الحالي
+    const updateThemeIcon = () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light'
+      const themeIcon = document.querySelector('#themeToggle i')
+      if (themeIcon) {
+        themeIcon.className = currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'
+      }
+    }
+    
+    updateThemeIcon()
   }, [])
   
   // ✅ تبديل الثيم - مع تحسين
@@ -114,161 +125,218 @@ export default function ClientApp({ }: ClientAppProps) {
     router.push(`${pathname}?${params.toString()}`, { scroll: true })
   }, [router, pathname, searchParams])
   
-  // ✅ إعداد event listeners للتفاعلات
+  // ✅ Event Delegation للفلترة (الحل الذهبي)
   useEffect(() => {
-    // البحث الفوري مع debounce
-    let searchTimeout: NodeJS.Timeout
-    const searchInput = document.getElementById('searchInput') as HTMLInputElement
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      
+      // 1. فلترة الأزرار
+      const filterButton = target.closest('.filter-btn')
+      if (filterButton) {
+        const category = (filterButton as HTMLButtonElement).dataset.category
+        if (category) {
+          handleCategoryFilter(category)
+          e.preventDefault()
+          return
+        }
+      }
+      
+      // 2. أزرار الصفحات (pagination)
+      const prevPageBtn = target.closest('#prevPageBtn')
+      if (prevPageBtn && !prevPageBtn.hasAttribute('disabled')) {
+        const currentPage = parseInt(searchParams.get('page') || '1')
+        if (currentPage > 1) {
+          handlePageChange(currentPage - 1)
+          e.preventDefault()
+          return
+        }
+      }
+      
+      const nextPageBtn = target.closest('#nextPageBtn')
+      if (nextPageBtn && !nextPageBtn.hasAttribute('disabled')) {
+        const currentPage = parseInt(searchParams.get('page') || '1')
+        // نفترض أن هناك صفحة تالية (سيتم التحقق في backend)
+        handlePageChange(currentPage + 1)
+        e.preventDefault()
+        return
+      }
+      
+      const pageNumber = target.closest('.page-number')
+      if (pageNumber) {
+        const page = parseInt((pageNumber as HTMLButtonElement).dataset.page || '1')
+        handlePageChange(page)
+        e.preventDefault()
+        return
+      }
+      
+      // 3. أزرار تبديل العرض (Grid/List)
+      const gridViewBtn = target.closest('#gridViewBtn')
+      if (gridViewBtn) {
+        handleViewChange('grid')
+        gridViewBtn.classList.add('active')
+        const listViewBtn = document.getElementById('listViewBtn')
+        if (listViewBtn) listViewBtn.classList.remove('active')
+        e.preventDefault()
+        return
+      }
+      
+      const listViewBtn = target.closest('#listViewBtn')
+      if (listViewBtn) {
+        handleViewChange('list')
+        listViewBtn.classList.add('active')
+        const gridViewBtn = document.getElementById('gridViewBtn')
+        if (gridViewBtn) gridViewBtn.classList.remove('active')
+        e.preventDefault()
+        return
+      }
+      
+      // 4. أزرار التنقل في header
+      const navButton = target.closest('.nav-links button')
+      if (navButton) {
+        const section = (navButton as HTMLButtonElement).dataset.section
+        if (section) {
+          const element = document.getElementById(section)
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' })
+          }
+        }
+        e.preventDefault()
+        return
+      }
+      
+      // 5. أزرار التنقل في footer
+      const footerButton = target.closest('.footer-links button')
+      if (footerButton) {
+        const buttonText = footerButton.textContent
+        const sections: Record<string, string> = {
+          'الرئيسية': 'home',
+          'الأدوات': 'tools',
+          'الفئات': 'categories',
+          'من نحن': 'about',
+          'اتصل بنا': 'contact'
+        }
+        
+        const sectionId = sections[buttonText || '']
+        if (sectionId) {
+          const element = document.getElementById(sectionId)
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' })
+          }
+        }
+        e.preventDefault()
+        return
+      }
+      
+      // 6. زر الثيم
+      const themeToggle = target.closest('#themeToggle')
+      if (themeToggle) {
+        toggleTheme()
+        e.preventDefault()
+        return
+      }
+      
+      // 7. زر فتح القائمة الجانبية
+      const mobileMenuBtn = target.closest('#mobileMenuBtn')
+      if (mobileMenuBtn) {
+        openMobileMenu()
+        e.preventDefault()
+        return
+      }
+      
+      // 8. زر إغلاق القائمة الجانبية
+      const closeMobileMenuBtn = target.closest('#closeMobileMenu')
+      if (closeMobileMenuBtn) {
+        closeMobileMenu()
+        e.preventDefault()
+        return
+      }
+      
+      // 9. أزرار القائمة الجانبية
+      const mobileNavButton = target.closest('.mobile-nav-links button')
+      if (mobileNavButton) {
+        const buttonText = mobileNavButton.textContent
+        const sections: Record<string, string> = {
+          'الرئيسية': 'home',
+          'الأدوات': 'tools',
+          'الفئات': 'categories',
+          'من نحن': 'about',
+          'اتصل بنا': 'contact'
+        }
+        
+        const sectionId = sections[buttonText || '']
+        if (sectionId) {
+          const element = document.getElementById(sectionId)
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' })
+          }
+        }
+        closeMobileMenu()
+        e.preventDefault()
+        return
+      }
+      
+      // 10. زر العودة للأعلى
+      const backToTopBtn = target.closest('#backToTop')
+      if (backToTopBtn) {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        })
+        e.preventDefault()
+        return
+      }
+    }
     
-    if (searchInput) {
-      const handleSearchInput = (e: Event) => {
+    // إضافة الـ event listener مرة واحدة على document
+    document.addEventListener('click', handleClick)
+    
+    // تنظيف الـ event listener عند unmount
+    return () => {
+      document.removeEventListener('click', handleClick)
+    }
+  }, [handleCategoryFilter, handlePageChange, handleViewChange, toggleTheme, openMobileMenu, closeMobileMenu, searchParams])
+  
+  // ✅ Event Delegation للبحث (input events)
+  useEffect(() => {
+    let searchTimeout: NodeJS.Timeout
+    
+    const handleInput = (e: Event) => {
+      const target = e.target as HTMLInputElement
+      
+      // البحث
+      if (target.id === 'searchInput') {
         clearTimeout(searchTimeout)
         searchTimeout = setTimeout(() => {
-          handleSearch((e.target as HTMLInputElement).value)
+          handleSearch(target.value)
         }, 300)
       }
-      
-      searchInput.addEventListener('input', handleSearchInput)
-      
-      return () => {
-        searchInput.removeEventListener('input', handleSearchInput)
-        clearTimeout(searchTimeout)
-      }
+    }
+    
+    document.addEventListener('input', handleInput)
+    
+    return () => {
+      document.removeEventListener('input', handleInput)
+      clearTimeout(searchTimeout)
     }
   }, [handleSearch])
   
-  // ✅ Event listeners لأزرار الفلترة
+  // ✅ Event Delegation للترتيب (change events)
   useEffect(() => {
-    const filterButtons = document.querySelectorAll('.filter-btn')
-    
-    const handleFilterClick = (e: Event) => {
-      const button = e.currentTarget as HTMLButtonElement
-      const category = button.dataset.category
-      if (category) {
-        handleCategoryFilter(category)
+    const handleChange = (e: Event) => {
+      const target = e.target as HTMLSelectElement
+      
+      // ترتيب الأدوات
+      if (target.id === 'sortSelect') {
+        handleSortChange(target.value)
       }
     }
     
-    filterButtons.forEach(button => {
-      button.addEventListener('click', handleFilterClick)
-    })
+    document.addEventListener('change', handleChange)
     
     return () => {
-      filterButtons.forEach(button => {
-        button.removeEventListener('click', handleFilterClick)
-      })
-    }
-  }, [handleCategoryFilter])
-  
-  // ✅ Event listener لـ select الترتيب
-  useEffect(() => {
-    const sortSelect = document.getElementById('sortSelect') as HTMLSelectElement
-    
-    if (sortSelect) {
-      const handleSortSelect = (e: Event) => {
-        handleSortChange((e.target as HTMLSelectElement).value)
-      }
-      
-      sortSelect.addEventListener('change', handleSortSelect)
-      
-      return () => {
-        sortSelect.removeEventListener('change', handleSortSelect)
-      }
+      document.removeEventListener('change', handleChange)
     }
   }, [handleSortChange])
-  
-  // ✅ Event listener لـ pagination buttons
-  useEffect(() => {
-    const prevPageBtn = document.getElementById('prevPageBtn')
-    const nextPageBtn = document.getElementById('nextPageBtn')
-    const pageNumbers = document.querySelectorAll('.page-number')
-    
-    const handlePrevPage = () => {
-      const currentPage = parseInt(searchParams.get('page') || '1')
-      if (currentPage > 1) {
-        handlePageChange(currentPage - 1)
-      }
-    }
-    
-    const handleNextPage = () => {
-      const currentPage = parseInt(searchParams.get('page') || '1')
-      const totalTools = document.querySelectorAll('.tool-card').length
-      if (totalTools === 20) { // إذا كانت الصفحة ممتلئة
-        handlePageChange(currentPage + 1)
-      }
-    }
-    
-    const handlePageNumberClick = (e: Event) => {
-      const button = e.currentTarget as HTMLButtonElement
-      const page = parseInt(button.dataset.page || '1')
-      handlePageChange(page)
-    }
-    
-    prevPageBtn?.addEventListener('click', handlePrevPage)
-    nextPageBtn?.addEventListener('click', handleNextPage)
-    pageNumbers.forEach(button => {
-      button.addEventListener('click', handlePageNumberClick)
-    })
-    
-    return () => {
-      prevPageBtn?.removeEventListener('click', handlePrevPage)
-      nextPageBtn?.removeEventListener('click', handleNextPage)
-      pageNumbers.forEach(button => {
-        button.removeEventListener('click', handlePageNumberClick)
-      })
-    }
-  }, [searchParams, handlePageChange])
-  
-  // ✅ Event listeners للثيم والقائمة الجانبية
-  useEffect(() => {
-    const themeToggleBtn = document.getElementById('themeToggle')
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn')
-    const closeMobileMenuBtn = document.getElementById('closeMobileMenu')
-    
-    if (themeToggleBtn) {
-      themeToggleBtn.onclick = toggleTheme
-    }
-    
-    if (mobileMenuBtn) {
-      mobileMenuBtn.onclick = openMobileMenu
-    }
-    
-    if (closeMobileMenuBtn) {
-      closeMobileMenuBtn.onclick = closeMobileMenu
-    }
-    
-    return () => {
-      if (themeToggleBtn) themeToggleBtn.onclick = null
-      if (mobileMenuBtn) mobileMenuBtn.onclick = null
-      if (closeMobileMenuBtn) closeMobileMenuBtn.onclick = null
-    }
-  }, [toggleTheme, openMobileMenu, closeMobileMenu])
-  
-  // ✅ Event listener لتبديل العرض
-  useEffect(() => {
-    const gridViewBtn = document.getElementById('gridViewBtn')
-    const listViewBtn = document.getElementById('listViewBtn')
-    
-    const handleGridView = () => {
-      handleViewChange('grid')
-      gridViewBtn?.classList.add('active')
-      listViewBtn?.classList.remove('active')
-    }
-    
-    const handleListView = () => {
-      handleViewChange('list')
-      listViewBtn?.classList.add('active')
-      gridViewBtn?.classList.remove('active')
-    }
-    
-    gridViewBtn?.addEventListener('click', handleGridView)
-    listViewBtn?.addEventListener('click', handleListView)
-    
-    return () => {
-      gridViewBtn?.removeEventListener('click', handleGridView)
-      listViewBtn?.removeEventListener('click', handleListView)
-    }
-  }, [handleViewChange])
   
   // ✅ إخفاء loading overlay بعد التحميل
   useEffect(() => {
@@ -300,60 +368,6 @@ export default function ClientApp({ }: ClientAppProps) {
     }
   }, [])
   
-  // ✅ Event listener لزر العودة للأعلى
-  useEffect(() => {
-    const backToTopBtn = document.getElementById('backToTop')
-    
-    const handleBackToTop = () => {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      })
-    }
-    
-    if (backToTopBtn) {
-      backToTopBtn.addEventListener('click', handleBackToTop)
-    }
-    
-    return () => {
-      backToTopBtn?.removeEventListener('click', handleBackToTop)
-    }
-  }, [])
-  
-  // ✅ Event listener لأزرار التنقل
-  useEffect(() => {
-    const navButtons = document.querySelectorAll('.nav-links button')
-    const footerButtons = document.querySelectorAll('.footer-links button')
-    
-    const handleNavClick = (e: Event) => {
-      const button = e.currentTarget as HTMLButtonElement
-      const section = button.dataset.section
-      if (section) {
-        const element = document.getElementById(section)
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' })
-        }
-      }
-    }
-    
-    navButtons.forEach(button => {
-      button.addEventListener('click', handleNavClick)
-    })
-    
-    footerButtons.forEach(button => {
-      button.addEventListener('click', handleNavClick)
-    })
-    
-    return () => {
-      navButtons.forEach(button => {
-        button.removeEventListener('click', handleNavClick)
-      })
-      footerButtons.forEach(button => {
-        button.removeEventListener('click', handleNavClick)
-      })
-    }
-  }, [])
-  
   // ✅ تنظيف عند unmount
   useEffect(() => {
     return () => {
@@ -372,11 +386,11 @@ export default function ClientApp({ }: ClientAppProps) {
         </div>
         <div className="mobile-menu-content">
           <ul className="mobile-nav-links">
-            <li><button onClick={() => { closeMobileMenu(); document.getElementById('home')?.scrollIntoView({ behavior: 'smooth' }) }}>الرئيسية</button></li>
-            <li><button onClick={() => { closeMobileMenu(); document.getElementById('tools')?.scrollIntoView({ behavior: 'smooth' }) }}>الأدوات</button></li>
-            <li><button onClick={() => { closeMobileMenu(); document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' }) }}>الفئات</button></li>
-            <li><button onClick={() => { closeMobileMenu(); document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }) }}>من نحن</button></li>
-            <li><button onClick={() => { closeMobileMenu(); document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }) }}>اتصل بنا</button></li>
+            <li><button>الرئيسية</button></li>
+            <li><button>الأدوات</button></li>
+            <li><button>الفئات</button></li>
+            <li><button>من نحن</button></li>
+            <li><button>اتصل بنا</button></li>
           </ul>
         </div>
       </div>
