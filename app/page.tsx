@@ -1,3 +1,34 @@
+/**
+ * ⚠️ IMPORTANT ARCHITECTURAL NOTE:
+ * ------------------------------------------------------------
+ * This is a SERVER COMPONENT (app/page.tsx)
+ * ------------------------------------------------------------
+ * DO NOT ADD:
+ * - useState, useEffect, useRef, useReducer
+ * - onClick, onChange, event handlers
+ * - window, document, localStorage, sessionStorage
+ * - any Browser APIs
+ * 
+ * REASON: Server Components run on Node.js during build/request
+ *         and cannot use browser-specific features.
+ * 
+ * ALL INTERACTIVITY must be in:
+ * - ClientApp.tsx (client component)
+ * - Separate client components with 'use client' directive
+ * ------------------------------------------------------------
+ * Current allowed patterns (safe):
+ * - Pure functions for data transformation
+ * - JSX rendering
+ * - Data fetching (getTools)
+ * - Static calculations
+ * ------------------------------------------------------------
+ * NOTE: This file is intentionally kept as a single file for
+ *       easier development. When it grows beyond 500 lines,
+ *       consider splitting into separate modules.
+ * ------------------------------------------------------------
+ */
+
+import { Suspense } from "react"
 import ClientApp from './ClientApp'
 
 // ==============================
@@ -60,10 +91,10 @@ function deriveIsPopular(rating: number): boolean {
 function deriveReviewsCount(rating: number, createdDate: string): number {
   const ratingScore = rating || 3.5
   const daysOld = (Date.now() - new Date(createdDate).getTime()) / (1000 * 60 * 60 * 24)
-
+  
   // منطق ذكي للاشتقاق
   let reviews = 50 // الحد الأدنى
-
+  
   if (ratingScore >= 4.7) {
     reviews = 2000 + Math.min(Math.floor(daysOld / 7) * 50, 5000)
   } else if (ratingScore >= 4.5) {
@@ -73,7 +104,7 @@ function deriveReviewsCount(rating: number, createdDate: string): number {
   } else if (ratingScore >= 3.5) {
     reviews = 100 + Math.min(Math.floor(daysOld / 7) * 10, 500)
   }
-
+  
   return reviews
 }
 
@@ -106,24 +137,24 @@ function CategoryIcon({ category }: { category: string }) {
     'data': 'fas fa-database',
     'other': 'fas fa-toolbox'
   }
-
+  
   return <i className={categoryIcons[category] || 'fas fa-toolbox'} />
 }
 
 // حساب الدرجة الذكية
 function getSmartScore(tool: Tool): number {
   let score = 0
-
+  
   score += (tool.rating || 0) * 10
-
+  
   if (tool.price === 0) score += 15
-
+  
   // استخدام الحقول المشتقة
   const popularityScore = Math.min(Math.log10((tool.reviews || 0) + 1) * 5, 20)
   score += popularityScore
-
+  
   if (tool.featured) score += 25
-
+  
   if (tool.created_at) {
     const daysOld = (Date.now() - new Date(tool.created_at).getTime()) / (1000 * 60 * 60 * 24)
     if (daysOld < 30) {
@@ -131,33 +162,33 @@ function getSmartScore(tool: Tool): number {
       score += newnessScore
     }
   }
-
+  
   if (tool.popular) score += 20
-
+  
   return Math.round(score)
 }
 
 // أسباب "Why This Tool"
 function getWhyThisTool(tool: Tool): string[] {
   const reasons: string[] = []
-
+  
   if (tool.rating >= 4.5) reasons.push("تقييم مرتفع")
-
+  
   if (tool.price === 0) {
     reasons.push("مجانية بالكامل")
   } else if (tool.price < 20) {
     reasons.push("سعر معقول")
   }
-
+  
   // استخدام الحقول المشتقة
   if (tool.reviews >= 1000) {
     reasons.push("شائعة جداً")
   } else if (tool.reviews >= 100) {
     reasons.push("مستخدمة من قبل العديد")
   }
-
+  
   if (tool.featured) reasons.push("مميزة من فريق ToolHub")
-
+  
   if (tool.description && (
     tool.description.includes("طلاب") || 
     tool.description.includes("تعليم") || 
@@ -165,38 +196,38 @@ function getWhyThisTool(tool: Tool): string[] {
   )) {
     reasons.push("مناسبة للتعليم")
   }
-
+  
   if (tool.created_at) {
     const daysOld = (Date.now() - new Date(tool.created_at).getTime()) / (1000 * 60 * 60 * 24)
     if (daysOld < 30) reasons.push("أداة جديدة")
   }
-
+  
   return reasons.slice(0, 2)
 }
 
 // الحصول على الشارات كـ JSX
 function ToolBadges({ tool }: { tool: Tool }) {
   const badges: Array<{text: string, type: string, icon: string}> = []
-
+  
   if (tool.featured) {
     badges.push({ text: "مميزة", type: "featured", icon: "fas fa-crown" })
   }
-
+  
   if (tool.price === 0) {
     badges.push({ text: "مجانية", type: "free", icon: "fas fa-gift" })
   }
-
+  
   if (tool.popular) {
     badges.push({ text: "رائجة", type: "popular", icon: "fas fa-fire" })
   }
-
+  
   if (tool.created_at) {
     const daysOld = (Date.now() - new Date(tool.created_at).getTime()) / (1000 * 60 * 60 * 24)
     if (daysOld < 30) {
       badges.push({ text: "جديدة", type: "new", icon: "fas fa-bolt" })
     }
   }
-
+  
   return (
     <div className="tool-badges">
       {badges.map((badge, index) => (
@@ -212,7 +243,7 @@ function ToolBadges({ tool }: { tool: Tool }) {
 // فلترة الأدوات
 function filterTools(tools: Tool[], filters: Filters): Tool[] {
   let results = [...tools]
-
+  
   // فلترة بالنص
   if (filters.query && filters.query.trim()) {
     const terms = filters.query.toLowerCase().split(' ').filter(term => term.length > 0)
@@ -224,12 +255,12 @@ function filterTools(tools: Tool[], filters: Filters): Tool[] {
       return terms.every(term => searchable.includes(term))
     })
   }
-
+  
   // فلترة بالفئة
   if (filters.category && filters.category !== 'all') {
     results = results.filter(tool => tool.category === filters.category)
   }
-
+  
   // الترتيب
   switch (filters.sort) {
     case 'rating':
@@ -250,7 +281,7 @@ function filterTools(tools: Tool[], filters: Filters): Tool[] {
       results.sort((a, b) => getSmartScore(b) - getSmartScore(a))
       break
   }
-
+  
   return results
 }
 
@@ -259,18 +290,18 @@ function extractTags(description: string): string[] {
   if (!description || description.trim() === '') {
     return ['ذكاء اصطناعي', 'إنتاجية']
   }
-
+  
   const tags = ['ذكاء اصطناعي', 'إنتاجية']
   const arabicStopWords = ['من', 'في', 'على', 'إلى', 'عن', 'مع', 'هذا', 'هذه', 'ذلك']
-
+  
   const words = description
     .split(/\s+/)
     .map(word => word.replace(/[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF0-9a-zA-Z]/g, ''))
     .filter(word => word.length > 2 && !arabicStopWords.includes(word))
     .slice(0, 5)
-
+  
   tags.push(...words)
-
+  
   return [...new Set(tags)].slice(0, 5)
 }
 
@@ -313,6 +344,9 @@ const BEST_LISTS_CONFIG = {
 // ==============================
 async function getTools(): Promise<Tool[]> {
   try {
+    // NOTE: Using NEXT_PUBLIC_ prefix for now. In production,
+    // consider renaming to SUPABASE_ANON_KEY without NEXT_PUBLIC_
+    // since this key is only used server-side.
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY
 
@@ -325,7 +359,7 @@ async function getTools(): Promise<Tool[]> {
         throw new Error('Supabase credentials are required in production')
       }
     }
-
+    
     const response = await fetch(`${supabaseUrl}/rest/v1/public_tools`, {
       method: 'GET',
       headers: {
@@ -336,24 +370,24 @@ async function getTools(): Promise<Tool[]> {
       },
       next: { revalidate: 3600 }
     })
-
+    
     if (!response.ok) {
       throw new Error(`Failed to fetch tools: ${response.status}`)
     }
-
+    
     const tools = await response.json()
-
+    
     // ✅ Normalize tools مع الاشتقاق الذكي
     return tools.map((tool: any) => {
       const rating = tool.rating || 3.5
       const description = tool.description || 'لا يوجد وصف متاح'
       const createdDate = tool.created_at || new Date().toISOString()
-
+      
       // ✅ استخدام دوال الاشتقاق المركزية
       const reviewsCount = deriveReviewsCount(rating, createdDate)
       const isFeatured = deriveIsFeatured(rating)
       const isPopular = deriveIsPopular(rating)
-
+      
       return {
         id: tool.id,
         name: tool.name || 'أداة بدون اسم',
@@ -370,7 +404,7 @@ async function getTools(): Promise<Tool[]> {
         tags: extractTags(description)
       }
     })
-
+    
   } catch (error) {
     console.error('❌ فشل جلب الأدوات:', error)
     return []
@@ -378,16 +412,46 @@ async function getTools(): Promise<Tool[]> {
 }
 
 // ==============================
-// 4️⃣ Page Component (Server Component)
+// 4️⃣ Home Page Component with Suspense Boundary
 // ==============================
-export default async function HomePage({
+export default function Home({
+  searchParams
+}: {
+  searchParams: { [key: string]: string | string[] | undefined }
+}) {
+  return (
+    <>
+      <Suspense 
+        fallback={
+          <div className="loading-overlay" id="loadingOverlay">
+            <div className="loading-minimal">
+              <div className="loading-logo-minimal">
+                <i className="fas fa-robot logo-icon-3d"></i>
+              </div>
+              <div className="loading-text-minimal">
+                <p>جاري تحضير الأدوات الذكية...</p>
+              </div>
+            </div>
+          </div>
+        }
+      >
+        <HomePageContent searchParams={searchParams} />
+      </Suspense>
+    </>
+  )
+}
+
+// ==============================
+// 5️⃣ Main Content Component (Server Component)
+// ==============================
+async function HomePageContent({
   searchParams
 }: {
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
   // جلب البيانات
   const allTools = await getTools()
-
+  
   // تحضير الفلاتر من URL
   const filters: Filters = {
     query: typeof searchParams.query === 'string' ? searchParams.query : '',
@@ -395,22 +459,22 @@ export default async function HomePage({
     sort: typeof searchParams.sort === 'string' ? searchParams.sort : 'smart',
     page: typeof searchParams.page === 'string' ? parseInt(searchParams.page) || 1 : 1
   }
-
+  
   // تطبيق الفلترة والترتيب
   const filteredTools = filterTools(allTools, filters)
-
+  
   // Pagination
   const PER_PAGE = 20
   const totalPages = Math.ceil(filteredTools.length / PER_PAGE)
   const startIndex = (filters.page - 1) * PER_PAGE
   const endIndex = startIndex + PER_PAGE
   const paginatedTools = filteredTools.slice(startIndex, endIndex)
-
+  
   // إحصائيات
   const totalTools = allTools.length
   const freeTools = allTools.filter(t => t.price === 0).length
   const categoriesCount = [...new Set(allTools.map(t => t.category))].length
-
+  
   // إنشاء Structured Data للـSEO
   const structuredData = {
     "@context": "https://schema.org",
@@ -438,7 +502,7 @@ export default async function HomePage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-
+      
       {/* Loading Overlay */}
       <div className="loading-overlay" id="loadingOverlay">
         <div className="loading-minimal">
@@ -454,14 +518,14 @@ export default async function HomePage({
       {/* Floating Elements */}
       <div className="floating-element" style={{ width: '300px', height: '300px', top: '10%', right: '10%' }}></div>
       <div className="floating-element" style={{ width: '200px', height: '200px', bottom: '20%', left: '5%' }}></div>
-
+      
       {/* Header */}
       <header>
         <a href="/" className="logo" aria-label="ToolHub - العودة للرئيسية">
           <i className="fas fa-robot logo-icon-3d"></i>
           <span>ToolHub</span>
         </a>
-
+        
         <nav className="desktop-nav" aria-label="التنقل الرئيسي">
           <ul className="nav-links">
             <li><button data-section="home">الرئيسية</button></li>
@@ -471,7 +535,7 @@ export default async function HomePage({
             <li><button data-section="contact">اتصل بنا</button></li>
           </ul>
         </nav>
-
+        
         <div className="header-controls">
           <button className="theme-toggle" id="themeToggle" aria-label="تبديل وضع السطوع والظلام">
             <i className="fas fa-moon"></i>
@@ -493,7 +557,7 @@ export default async function HomePage({
             <p className="hero-subtitle">
               اكتشف أكثر من 1000 أداة ذكية في مكان واحد. من إنشاء المحتوى إلى تحليل البيانات، كل ما تحتاجه لمستقبل رقمي أفضل بلمسة ذكية.
             </p>
-
+            
             <div className="hero-actions">
               <button id="exploreToolsBtn" className="hero-btn hero-primary">
                 <i className="fas fa-rocket"></i>
@@ -545,7 +609,7 @@ export default async function HomePage({
                   بحث
                 </button>
               </div>
-
+              
               {/* Quick Filters */}
               <div className="quick-filters">
                 <button className={`filter-btn ${filters.category === 'all' ? 'active' : ''}`} data-category="all">
@@ -578,7 +642,7 @@ export default async function HomePage({
             <div className="section-header">
               <h2>الأدوات المميزة</h2>
               <p>اكتشف أفضل أدوات الذكاء الاصطناعي المختارة بعناية</p>
-
+              
               <div className="view-toggle">
                 <button id="gridViewBtn" className="view-btn active">
                   <i className="fas fa-th-large"></i>
@@ -609,7 +673,7 @@ export default async function HomePage({
                     <option value="newest">الأحدث</option>
                   </select>
                 </div>
-
+                
                 {/* Pagination Controls */}
                 <div className="pagination-controls">
                   <button 
@@ -651,7 +715,7 @@ export default async function HomePage({
               {paginatedTools.map((tool) => {
                 const whyReasons = getWhyThisTool(tool)
                 const smartScore = getSmartScore(tool)
-
+                
                 return (
                   <div className="tool-card" key={tool.id} data-tool-id={tool.id}>
                     {tool.featured && (
@@ -659,18 +723,18 @@ export default async function HomePage({
                         <i className="fas fa-crown"></i> مميز
                       </div>
                     )}
-
+                    
                     {tool.popular && (
                       <div className="popular-badge">
                         <i className="fas fa-fire"></i> رائج
                       </div>
                     )}
-
+                    
                     <div className="tool-card-header">
                       <div className="tool-icon">
                         <CategoryIcon category={tool.category} />
                       </div>
-
+                      
                       {tool.image_url && (
                         <div className="tool-image-container">
                           <img 
@@ -681,17 +745,17 @@ export default async function HomePage({
                           />
                         </div>
                       )}
-
+                      
                       <div className="tool-header-content">
                         <h3 className="tool-title">{tool.name}</h3>
                         <ToolBadges tool={tool} />
                         <span className="tool-category">{getCategoryName(tool.category)}</span>
                       </div>
                     </div>
-
+                    
                     <div className="tool-card-body">
                       <p className="tool-description">{tool.description}</p>
-
+                      
                       {whyReasons.length > 0 && (
                         <div className="why-section">
                           <span className="why-title">💡 لماذا هذه الأداة؟</span>
@@ -702,13 +766,13 @@ export default async function HomePage({
                           </ul>
                         </div>
                       )}
-
+                      
                       <div className="tool-tags">
                         {tool.tags.map((tag, index) => (
                           <span key={index} className="tool-tag">#{tag}</span>
                         ))}
                       </div>
-
+                      
                       <div className="tool-rating">
                         <StarRating rating={tool.rating} />
                         {tool.reviews > 0 && (
@@ -719,7 +783,7 @@ export default async function HomePage({
                         </span>
                       </div>
                     </div>
-
+                    
                     <div className="tool-card-footer">
                       <span className={`tool-price ${tool.price === 0 ? 'free' : ''}`}>
                         {tool.price === 0 ? 'مجاني' : `$${tool.price}/شهر`}
@@ -755,7 +819,7 @@ export default async function HomePage({
               <h2>تصفح حسب الفئات</h2>
               <p>اكتشف الأدوات من خلال التصنيفات المحددة</p>
             </div>
-
+            
             <div className="categories-grid">
               {Array.from(new Set(allTools.map(t => t.category))).slice(0, 6).map((category) => {
                 const categoryCount = allTools.filter(t => t.category === category).length
@@ -780,7 +844,7 @@ export default async function HomePage({
               <h2>لماذا ToolHub؟</h2>
               <p>مزايا تجعلنا الوجهة الأولى لأدوات الذكاء الاصطناعي</p>
             </div>
-
+            
             <div className="features-grid">
               <div className="feature-card">
                 <div className="feature-icon">
@@ -789,7 +853,7 @@ export default async function HomePage({
                 <h3>ذكاء اصطناعي حقيقي</h3>
                 <p>أدوات مختارة بعناية تعمل بتقنيات الذكاء الاصطناعي الحديثة</p>
               </div>
-
+              
               <div className="feature-card">
                 <div className="feature-icon">
                   <i className="fas fa-filter"></i>
@@ -797,7 +861,7 @@ export default async function HomePage({
                 <h3>فلترة ذكية</h3>
                 <p>ابحث عن الأداة المثالية بسرعة باستخدام فلاتر متقدمة</p>
               </div>
-
+              
               <div className="feature-card">
                 <div className="feature-icon">
                   <i className="fas fa-language"></i>
@@ -816,7 +880,7 @@ export default async function HomePage({
               <h2>آراء المستخدمين</h2>
               <p>ماذا يقولون عن منصتنا</p>
             </div>
-
+            
             <div className="testimonials-slider">
               <div className="testimonial-card">
                 <div className="testimonial-content">
@@ -830,7 +894,7 @@ export default async function HomePage({
                   </div>
                 </div>
               </div>
-
+              
               <div className="testimonial-card">
                 <div className="testimonial-content">
                   "كمصمم، كنت أبحث عن أدوات تصميم بالذكاء الاصطناعي. ToolHub جمع لي كل الأدوات في مكان واحد!"
@@ -883,7 +947,7 @@ export default async function HomePage({
                   </a>
                 </div>
               </div>
-
+              
               <div className="footer-column">
                 <h3>روابط سريعة</h3>
                 <ul className="footer-links">
@@ -894,7 +958,7 @@ export default async function HomePage({
                   <li><button>اتصل بنا</button></li>
                 </ul>
               </div>
-
+              
               <div className="footer-column">
                 <h3>اشترك في النشرة البريدية</h3>
                 <p>احصل على آخر التحديثات عن أدوات الذكاء الاصطناعي</p>
@@ -904,7 +968,7 @@ export default async function HomePage({
                 </div>
               </div>
             </div>
-
+            
             <div className="copyright">
               <p>© {new Date().getFullYear()} ToolHub. جميع الحقوق محفوظة.</p>
             </div>
@@ -917,7 +981,7 @@ export default async function HomePage({
         </button>
       </main>
 
-      {/* Client Component للتفاعلات فقط */}
+      {/* ✅ Client Component داخل HomePageContent */}
       <ClientApp />
     </>
   )
