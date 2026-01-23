@@ -324,7 +324,7 @@ async function getTools(): Promise<Tool[]> {
         'Content-Type': 'application/json',
         'Prefer': 'return=representation'
       },
-      cache: 'no-store' // 🔥 الإضافة المطلوبة هنا (بدلاً من revalidate: 3600)
+      cache: 'no-store'
     })
     
     if (!response.ok) {
@@ -463,19 +463,62 @@ async function HomePageContent({
         
         <nav className="desktop-nav" aria-label="التنقل الرئيسي">
           <ul className="nav-links">
-            <li><button data-section="home">الرئيسية</button></li>
-            <li><button data-section="tools">الأدوات</button></li>
-            <li><button data-section="categories">الفئات</button></li>
-            <li><button data-section="about">من نحن</button></li>
-            <li><button data-section="contact">اتصل بنا</button></li>
+            <li>
+              <button 
+                data-section="home"
+                onClick={(e) => e.preventDefault()}
+              >
+                الرئيسية
+              </button>
+            </li>
+            <li>
+              <button 
+                data-section="tools"
+                onClick={(e) => e.preventDefault()}
+              >
+                الأدوات
+              </button>
+            </li>
+            <li>
+              <button 
+                data-section="categories"
+                onClick={(e) => e.preventDefault()}
+              >
+                الفئات
+              </button>
+            </li>
+            <li>
+              <button 
+                data-section="about"
+                onClick={(e) => e.preventDefault()}
+              >
+                من نحن
+              </button>
+            </li>
+            <li>
+              <button 
+                data-section="contact"
+                onClick={(e) => e.preventDefault()}
+              >
+                اتصل بنا
+              </button>
+            </li>
           </ul>
         </nav>
         
         <div className="header-controls">
-          <button className="theme-toggle" id="themeToggle" aria-label="تبديل وضع السطوع والظلام">
+          <button 
+            className="theme-toggle" 
+            id="themeToggle" 
+            aria-label="تبديل وضع السطوع والظلام"
+          >
             <i className="fas fa-moon"></i>
           </button>
-          <button className="mobile-menu-btn" id="mobileMenuBtn" aria-label="فتح قائمة التنقل">
+          <button 
+            className="mobile-menu-btn" 
+            id="mobileMenuBtn" 
+            aria-label="فتح قائمة التنقل"
+          >
             <i className="fas fa-bars"></i>
           </button>
         </div>
@@ -492,11 +535,17 @@ async function HomePageContent({
             </p>
             
             <div className="hero-actions">
-              <button id="exploreToolsBtn" className="hero-btn hero-primary">
+              <button 
+                id="exploreToolsBtn" 
+                className="hero-btn hero-primary"
+              >
                 <i className="fas fa-rocket"></i>
                 استكشاف الأدوات
               </button>
-              <button id="watchDemoBtn" className="hero-btn hero-secondary">
+              <button 
+                id="watchDemoBtn" 
+                className="hero-btn hero-secondary"
+              >
                 <i className="fas fa-play-circle"></i>
                 مشاهدة العرض
               </button>
@@ -542,22 +591,42 @@ async function HomePageContent({
               </div>
               
               <div className="quick-filters">
-                <button className={`filter-btn ${filters.category === 'all' ? 'active' : ''}`} data-category="all">
+                <button 
+                  className={`filter-btn ${filters.category === 'all' ? 'active' : ''}`} 
+                  data-category="all"
+                  onClick={(e) => e.preventDefault()}
+                >
                   الكل
                 </button>
-                <button className={`filter-btn ${filters.category === 'writing' ? 'active' : ''}`} data-category="writing">
+                <button 
+                  className={`filter-btn ${filters.category === 'writing' ? 'active' : ''}`} 
+                  data-category="writing"
+                  onClick={(e) => e.preventDefault()}
+                >
                   <i className="fas fa-pen"></i>
                   الكتابة
                 </button>
-                <button className={`filter-btn ${filters.category === 'design' ? 'active' : ''}`} data-category="design">
+                <button 
+                  className={`filter-btn ${filters.category === 'design' ? 'active' : ''}`} 
+                  data-category="design"
+                  onClick={(e) => e.preventDefault()}
+                >
                   <i className="fas fa-palette"></i>
                   التصميم
                 </button>
-                <button className={`filter-btn ${filters.category === 'video' ? 'active' : ''}`} data-category="video">
+                <button 
+                  className={`filter-btn ${filters.category === 'video' ? 'active' : ''}`} 
+                  data-category="video"
+                  onClick={(e) => e.preventDefault()}
+                >
                   <i className="fas fa-video"></i>
                   الفيديو
                 </button>
-                <button className={`filter-btn ${filters.category === 'code' ? 'active' : ''}`} data-category="code">
+                <button 
+                  className={`filter-btn ${filters.category === 'code' ? 'active' : ''}`} 
+                  data-category="code"
+                  onClick={(e) => e.preventDefault()}
+                >
                   <i className="fas fa-code"></i>
                   البرمجة
                 </button>
@@ -618,6 +687,7 @@ async function HomePageContent({
                           key={pageNum} 
                           className={`page-number ${pageNum === filters.page ? 'active' : ''}`}
                           data-page={pageNum}
+                          onClick={(e) => e.preventDefault()}
                         >
                           {pageNum}
                         </button>
@@ -747,7 +817,12 @@ async function HomePageContent({
               {Array.from(new Set(allTools.map(t => t.category))).slice(0, 6).map((category) => {
                 const categoryCount = allTools.filter(t => t.category === category).length
                 return (
-                  <div className="category-card" key={category} data-category={category}>
+                  <div 
+                    className="category-card" 
+                    key={category} 
+                    data-category={category}
+                    onClick={(e) => e.preventDefault()}
+                  >
                     <div className="category-icon">
                       <CategoryIcon category={category} />
                     </div>
@@ -870,11 +945,46 @@ async function HomePageContent({
               <div className="footer-column">
                 <h3>روابط سريعة</h3>
                 <ul className="footer-links">
-                  <li><button>الرئيسية</button></li>
-                  <li><button>الأدوات</button></li>
-                  <li><button>الفئات</button></li>
-                  <li><button>من نحن</button></li>
-                  <li><button>اتصل بنا</button></li>
+                  <li>
+                    <button 
+                      data-section="home"
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      الرئيسية
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      data-section="tools"
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      الأدوات
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      data-section="categories"
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      الفئات
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      data-section="about"
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      من نحن
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      data-section="contact"
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      اتصل بنا
+                    </button>
+                  </li>
                 </ul>
               </div>
               
@@ -894,7 +1004,11 @@ async function HomePageContent({
           </div>
         </footer>
 
-        <button className="back-to-top" id="backToTop" aria-label="العودة للأعلى">
+        <button 
+          className="back-to-top" 
+          id="backToTop" 
+          aria-label="العودة للأعلى"
+        >
           <i className="fas fa-arrow-up"></i>
         </button>
       </main>
