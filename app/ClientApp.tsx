@@ -1,5 +1,7 @@
 'use client'
 
+console.log('🔥 ClientApp LOADED') // 🔥 اختبار التحميل
+
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 
@@ -8,6 +10,8 @@ interface ClientAppProps {
 }
 
 export default function ClientApp({ }: ClientAppProps) {
+  console.log('🔥 ClientApp RENDERED') // 🔥 اختبار التصيير
+  
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeView, setActiveView] = useState<'grid' | 'list'>('grid')
@@ -22,6 +26,7 @@ export default function ClientApp({ }: ClientAppProps) {
 
   // ✅ 1. تبديل الثيم
   const toggleTheme = useCallback(() => {
+    console.log('🎨 تبديل الثيم')
     const newTheme = theme === 'light' ? 'dark' : 'light'
     setTheme(newTheme)
     document.documentElement.setAttribute('data-theme', newTheme)
@@ -35,6 +40,7 @@ export default function ClientApp({ }: ClientAppProps) {
 
   // ✅ 2. البحث الفوري
   const handleSearch = useCallback((query: string) => {
+    console.log('🔍 البحث:', query)
     const params = new URLSearchParams(searchParams.toString())
     
     if (query.trim()) {
@@ -50,6 +56,7 @@ export default function ClientApp({ }: ClientAppProps) {
 
   // ✅ 3. الفلترة بالفئة
   const handleCategoryFilter = useCallback((category: string) => {
+    console.log('🏷️ فلترة الفئة:', category)
     const params = new URLSearchParams(searchParams.toString())
     
     if (category === 'all') {
@@ -65,6 +72,7 @@ export default function ClientApp({ }: ClientAppProps) {
 
   // ✅ 4. تغيير الترتيب
   const handleSortChange = useCallback((sort: string) => {
+    console.log('📊 ترتيب:', sort)
     const params = new URLSearchParams(searchParams.toString())
     params.set('sort', sort)
     
@@ -73,6 +81,7 @@ export default function ClientApp({ }: ClientAppProps) {
 
   // ✅ 5. تغيير الصفحة
   const handlePageChange = useCallback((page: number) => {
+    console.log('📄 صفحة:', page)
     const params = new URLSearchParams(searchParams.toString())
     params.set('page', page.toString())
     
@@ -83,12 +92,15 @@ export default function ClientApp({ }: ClientAppProps) {
   // 🎯 Event Delegation المركزي مع Type Safety
   // ============================================
   useEffect(() => {
+    console.log('🎯 Event Delegation جاهز')
+    
     const handleGlobalClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement
       
       // 1️⃣ فلترة الفئات - مع تحقق من HTMLElement
       const filterBtn = (target as Element).closest('.filter-btn')
       if (filterBtn instanceof HTMLElement && filterBtn.dataset.category) {
+        console.log('🖱️ تم النقر على فلترة:', filterBtn.dataset.category)
         e.preventDefault()
         handleCategoryFilter(filterBtn.dataset.category)
         return
@@ -97,6 +109,7 @@ export default function ClientApp({ }: ClientAppProps) {
       // 2️⃣ أزرار الصفحات (pagination)
       const prevPageBtn = target.closest('#prevPageBtn')
       if (prevPageBtn && !prevPageBtn.hasAttribute('disabled')) {
+        console.log('🖱️ زر الصفحة السابقة')
         e.preventDefault()
         const currentPage = parseInt(searchParams.get('page') || '1')
         if (currentPage > 1) {
@@ -107,6 +120,7 @@ export default function ClientApp({ }: ClientAppProps) {
       
       const nextPageBtn = target.closest('#nextPageBtn')
       if (nextPageBtn && !nextPageBtn.hasAttribute('disabled')) {
+        console.log('🖱️ زر الصفحة التالية')
         e.preventDefault()
         const currentPage = parseInt(searchParams.get('page') || '1')
         handlePageChange(currentPage + 1)
@@ -115,6 +129,7 @@ export default function ClientApp({ }: ClientAppProps) {
       
       const pageNumber = (target as Element).closest('.page-number')
       if (pageNumber instanceof HTMLElement && pageNumber.dataset.page) {
+        console.log('🖱️ زر رقم الصفحة:', pageNumber.dataset.page)
         e.preventDefault()
         const page = parseInt(pageNumber.dataset.page || '1')
         handlePageChange(page)
@@ -124,6 +139,7 @@ export default function ClientApp({ }: ClientAppProps) {
       // 3️⃣ أزرار تبديل العرض (Grid/List)
       const gridViewBtn = target.closest('#gridViewBtn')
       if (gridViewBtn) {
+        console.log('🖱️ عرض الشبكة')
         e.preventDefault()
         setActiveView('grid')
         return
@@ -131,6 +147,7 @@ export default function ClientApp({ }: ClientAppProps) {
       
       const listViewBtn = target.closest('#listViewBtn')
       if (listViewBtn) {
+        console.log('🖱️ عرض القائمة')
         e.preventDefault()
         setActiveView('list')
         return
@@ -139,6 +156,7 @@ export default function ClientApp({ }: ClientAppProps) {
       // 4️⃣ أزرار التنقل باستخدام data-section - مع تحقق من HTMLElement
       const navButton = (target as Element).closest('[data-section]')
       if (navButton instanceof HTMLElement && navButton.dataset.section) {
+        console.log('🖱️ تنقل إلى:', navButton.dataset.section)
         e.preventDefault()
         const section = navButton.dataset.section
         if (section) {
@@ -153,6 +171,7 @@ export default function ClientApp({ }: ClientAppProps) {
       // 5️⃣ زر الثيم
       const themeToggle = target.closest('#themeToggle')
       if (themeToggle) {
+        console.log('🖱️ تبديل الثيم')
         e.preventDefault()
         toggleTheme()
         return
@@ -161,6 +180,7 @@ export default function ClientApp({ }: ClientAppProps) {
       // 6️⃣ زر فتح القائمة الجانبية
       const mobileMenuBtn = target.closest('#mobileMenuBtn')
       if (mobileMenuBtn) {
+        console.log('🖱️ فتح القائمة الجانبية')
         e.preventDefault()
         setMobileMenuOpen(true)
         document.body.style.overflow = 'hidden'
@@ -170,6 +190,7 @@ export default function ClientApp({ }: ClientAppProps) {
       // 7️⃣ زر إغلاق القائمة الجانبية
       const closeMobileMenuBtn = target.closest('#closeMobileMenu')
       if (closeMobileMenuBtn) {
+        console.log('🖱️ إغلاق القائمة الجانبية')
         e.preventDefault()
         setMobileMenuOpen(false)
         document.body.style.overflow = 'auto'
@@ -184,6 +205,7 @@ export default function ClientApp({ }: ClientAppProps) {
         !mobileMenu.contains(target) &&
         !target.closest('#mobileMenuBtn')
       ) {
+        console.log('🖱️ إغلاق القائمة بالنقر خارجها')
         e.preventDefault()
         setMobileMenuOpen(false)
         document.body.style.overflow = 'auto'
@@ -193,6 +215,7 @@ export default function ClientApp({ }: ClientAppProps) {
       // 9️⃣ زر العودة للأعلى
       const backToTopBtn = target.closest('#backToTop')
       if (backToTopBtn) {
+        console.log('🖱️ العودة للأعلى')
         e.preventDefault()
         window.scrollTo({
           top: 0,
@@ -204,6 +227,7 @@ export default function ClientApp({ }: ClientAppProps) {
       // 🔟 أزرار CTA و Hero
       const exploreToolsBtn = target.closest('#exploreToolsBtn')
       if (exploreToolsBtn) {
+        console.log('🖱️ استكشاف الأدوات')
         e.preventDefault()
         document.getElementById('tools')?.scrollIntoView({ behavior: 'smooth' })
         return
@@ -211,6 +235,7 @@ export default function ClientApp({ }: ClientAppProps) {
       
       const watchDemoBtn = target.closest('#watchDemoBtn')
       if (watchDemoBtn) {
+        console.log('🖱️ مشاهدة العرض')
         e.preventDefault()
         // يمكن فتح modal أو تنفيذ أي action هنا
         return
@@ -218,6 +243,7 @@ export default function ClientApp({ }: ClientAppProps) {
       
       const ctaBtn = target.closest('.cta-btn')
       if (ctaBtn) {
+        console.log('🖱️ CTA زر')
         e.preventDefault()
         // يمكن فتح modal تسجيل هنا
         return
@@ -239,6 +265,7 @@ export default function ClientApp({ }: ClientAppProps) {
 
   // ✅ تطبيق عرض الأدوات (Grid/List) بناءً على activeView
   useEffect(() => {
+    console.log('🎨 تغيير العرض إلى:', activeView)
     const container = document.getElementById('toolsGridContainer')
     if (container) {
       if (activeView === 'list') {
@@ -251,6 +278,7 @@ export default function ClientApp({ }: ClientAppProps) {
 
   // ✅ تهيئة الثيم عند تحميل الصفحة
   useEffect(() => {
+    console.log('🎨 تهيئة الثيم')
     const savedTheme = localStorage.getItem('toolhub-theme') as 'light' | 'dark' | null
     if (savedTheme) {
       setTheme(savedTheme)
@@ -270,6 +298,7 @@ export default function ClientApp({ }: ClientAppProps) {
 
   // ✅ Event Delegation للبحث (input events)
   useEffect(() => {
+    console.log('🔍 تهيئة بحث فوري')
     let searchTimeout: NodeJS.Timeout
     
     const handleInput = (e: Event) => {
@@ -293,6 +322,7 @@ export default function ClientApp({ }: ClientAppProps) {
 
   // ✅ Event Delegation للترتيب (change events)
   useEffect(() => {
+    console.log('📊 تهيئة ترتيب')
     const handleChange = (e: Event) => {
       const target = e.target as HTMLSelectElement
       
@@ -310,16 +340,21 @@ export default function ClientApp({ }: ClientAppProps) {
 
   // ✅ إخفاء loading overlay بعد التحميل
   useEffect(() => {
+    console.log('⏳ إخفاء loading overlay')
     const overlay = document.getElementById('loadingOverlay')
     if (overlay) {
       setTimeout(() => {
         overlay.classList.add('hidden')
+        console.log('✅ تم إخفاء loading overlay')
       }, 1000)
+    } else {
+      console.warn('⚠️ loading overlay غير موجود')
     }
   }, [])
 
   // ✅ إظهار/إخفاء زر العودة للأعلى
   useEffect(() => {
+    console.log('🔼 تهيئة زر العودة للأعلى')
     const handleScroll = () => {
       const backToTopBtn = document.getElementById('backToTop')
       if (backToTopBtn) {
@@ -340,6 +375,7 @@ export default function ClientApp({ }: ClientAppProps) {
 
   // ✅ إغلاق القائمة الجانبية عند الضغط على زر الهروب (Escape)
   useEffect(() => {
+    console.log('🔒 تهيئة إغلاق بالقائمة الجانبية بالـ Escape')
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && mobileMenuOpen) {
         setMobileMenuOpen(false)
@@ -356,6 +392,7 @@ export default function ClientApp({ }: ClientAppProps) {
 
   // ✅ إغلاق القائمة الجانبية عند تغيير حجم النافذة
   useEffect(() => {
+    console.log('📱 تهيئة إغلاق القائمة بتغيير الحجم')
     const handleResize = () => {
       if (window.innerWidth > 1024 && mobileMenuOpen) {
         setMobileMenuOpen(false)
