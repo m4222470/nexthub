@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 
-// ✅ إضافة interface للـ props
 interface ClientAppProps {
   // يمكن إضافة props هنا إذا لزم الأمر مستقبلاً
 }
@@ -16,70 +15,25 @@ export default function ClientApp({ }: ClientAppProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  
-  // ✅ تهيئة الثيم عند تحميل الصفحة
-  useEffect(() => {
-    // ✅ تطبيق الثيم المخزن
-    const savedTheme = localStorage.getItem('toolhub-theme') as 'light' | 'dark' | null
-    if (savedTheme) {
-      setTheme(savedTheme)
-      document.documentElement.setAttribute('data-theme', savedTheme)
-    }
-    
-    // ✅ تحديث أيقونة الثيم بناءً على الثيم الحالي
-    const updateThemeIcon = () => {
-      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light'
-      const themeIcon = document.querySelector('#themeToggle i')
-      if (themeIcon) {
-        themeIcon.className = currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'
-      }
-    }
-    
-    updateThemeIcon()
-  }, [])
-  
-  // ✅ تبديل الثيم - مع تحسين
+
+  // ============================================
+  // 🔧 تعريف جميع الدوال هنا (قبل useEffect)
+  // ============================================
+
+  // ✅ 1. تبديل الثيم
   const toggleTheme = useCallback(() => {
     const newTheme = theme === 'light' ? 'dark' : 'light'
     setTheme(newTheme)
-    
-    // تحديث DOM و localStorage
     document.documentElement.setAttribute('data-theme', newTheme)
     localStorage.setItem('toolhub-theme', newTheme)
     
-    // تحديث أيقونة الثيم
     const themeIcon = document.querySelector('#themeToggle i')
     if (themeIcon) {
       themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'
     }
   }, [theme])
-  
-  // ✅ فتح وإغلاق القائمة الجانبية
-  const openMobileMenu = useCallback(() => {
-    setMobileMenuOpen(true)
-    document.body.style.overflow = 'hidden'
-  }, [])
-  
-  const closeMobileMenu = useCallback(() => {
-    setMobileMenuOpen(false)
-    document.body.style.overflow = 'auto'
-  }, [])
-  
-  // ✅ تبديل العرض (Grid/List)
-  const handleViewChange = useCallback((view: 'grid' | 'list') => {
-    setActiveView(view)
-    
-    const container = document.getElementById('toolsGridContainer')
-    if (container) {
-      if (view === 'list') {
-        container.classList.add('list-view')
-      } else {
-        container.classList.remove('list-view')
-      }
-    }
-  }, [])
-  
-  // ✅ البحث الفوري مع debounce
+
+  // ✅ 2. البحث الفوري
   const handleSearch = useCallback((query: string) => {
     const params = new URLSearchParams(searchParams.toString())
     
@@ -93,8 +47,8 @@ export default function ClientApp({ }: ClientAppProps) {
     
     router.push(`${pathname}?${params.toString()}`, { scroll: false })
   }, [router, pathname, searchParams])
-  
-  // ✅ الفلترة بالفئة
+
+  // ✅ 3. الفلترة بالفئة
   const handleCategoryFilter = useCallback((category: string) => {
     const params = new URLSearchParams(searchParams.toString())
     
@@ -108,194 +62,212 @@ export default function ClientApp({ }: ClientAppProps) {
     
     router.push(`${pathname}?${params.toString()}`, { scroll: false })
   }, [router, pathname, searchParams])
-  
-  // ✅ تغيير الترتيب
+
+  // ✅ 4. تغيير الترتيب
   const handleSortChange = useCallback((sort: string) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set('sort', sort)
     
     router.push(`${pathname}?${params.toString()}`, { scroll: false })
   }, [router, pathname, searchParams])
-  
-  // ✅ تغيير الصفحة
+
+  // ✅ 5. تغيير الصفحة
   const handlePageChange = useCallback((page: number) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set('page', page.toString())
     
     router.push(`${pathname}?${params.toString()}`, { scroll: true })
   }, [router, pathname, searchParams])
-  
-  // ✅ Event Delegation للفلترة (الحل الذهبي)
+
+  // ============================================
+  // 🎯 Event Delegation المركزي
+  // ============================================
   useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
+    const handleGlobalClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement
       
-      // 1. فلترة الأزرار
-      const filterButton = target.closest('.filter-btn')
-      if (filterButton) {
-        const category = (filterButton as HTMLButtonElement).dataset.category
-        if (category) {
-          handleCategoryFilter(category)
-          e.preventDefault()
-          return
-        }
+      // 1️⃣ فلترة الفئات
+      const filterBtn = target.closest('.filter-btn')
+      if (filterBtn && filterBtn.dataset.category) {
+        e.preventDefault()
+        handleCategoryFilter(filterBtn.dataset.category)
+        return
       }
       
-      // 2. أزرار الصفحات (pagination)
+      // 2️⃣ أزرار الصفحات (pagination)
       const prevPageBtn = target.closest('#prevPageBtn')
       if (prevPageBtn && !prevPageBtn.hasAttribute('disabled')) {
+        e.preventDefault()
         const currentPage = parseInt(searchParams.get('page') || '1')
         if (currentPage > 1) {
           handlePageChange(currentPage - 1)
-          e.preventDefault()
-          return
         }
+        return
       }
       
       const nextPageBtn = target.closest('#nextPageBtn')
       if (nextPageBtn && !nextPageBtn.hasAttribute('disabled')) {
-        const currentPage = parseInt(searchParams.get('page') || '1')
-        // نفترض أن هناك صفحة تالية (سيتم التحقق في backend)
-        handlePageChange(currentPage + 1)
         e.preventDefault()
+        const currentPage = parseInt(searchParams.get('page') || '1')
+        handlePageChange(currentPage + 1)
         return
       }
       
       const pageNumber = target.closest('.page-number')
       if (pageNumber) {
+        e.preventDefault()
         const page = parseInt((pageNumber as HTMLButtonElement).dataset.page || '1')
         handlePageChange(page)
-        e.preventDefault()
         return
       }
       
-      // 3. أزرار تبديل العرض (Grid/List)
+      // 3️⃣ أزرار تبديل العرض (Grid/List)
       const gridViewBtn = target.closest('#gridViewBtn')
       if (gridViewBtn) {
-        handleViewChange('grid')
-        gridViewBtn.classList.add('active')
-        const listViewBtn = document.getElementById('listViewBtn')
-        if (listViewBtn) listViewBtn.classList.remove('active')
         e.preventDefault()
+        setActiveView('grid')
         return
       }
       
       const listViewBtn = target.closest('#listViewBtn')
       if (listViewBtn) {
-        handleViewChange('list')
-        listViewBtn.classList.add('active')
-        const gridViewBtn = document.getElementById('gridViewBtn')
-        if (gridViewBtn) gridViewBtn.classList.remove('active')
         e.preventDefault()
+        setActiveView('list')
         return
       }
       
-      // 4. أزرار التنقل في header
-      const navButton = target.closest('.nav-links button')
+      // 4️⃣ أزرار التنقل باستخدام data-section
+      const navButton = target.closest('[data-section]')
       if (navButton) {
-        const section = (navButton as HTMLButtonElement).dataset.section
+        e.preventDefault()
+        const section = (navButton as HTMLElement).dataset.section
         if (section) {
           const element = document.getElementById(section)
           if (element) {
             element.scrollIntoView({ behavior: 'smooth' })
           }
         }
-        e.preventDefault()
         return
       }
       
-      // 5. أزرار التنقل في footer
-      const footerButton = target.closest('.footer-links button')
-      if (footerButton) {
-        const buttonText = footerButton.textContent
-        const sections: Record<string, string> = {
-          'الرئيسية': 'home',
-          'الأدوات': 'tools',
-          'الفئات': 'categories',
-          'من نحن': 'about',
-          'اتصل بنا': 'contact'
-        }
-        
-        const sectionId = sections[buttonText || '']
-        if (sectionId) {
-          const element = document.getElementById(sectionId)
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth' })
-          }
-        }
-        e.preventDefault()
-        return
-      }
-      
-      // 6. زر الثيم
+      // 5️⃣ زر الثيم
       const themeToggle = target.closest('#themeToggle')
       if (themeToggle) {
-        toggleTheme()
         e.preventDefault()
+        toggleTheme()
         return
       }
       
-      // 7. زر فتح القائمة الجانبية
+      // 6️⃣ زر فتح القائمة الجانبية
       const mobileMenuBtn = target.closest('#mobileMenuBtn')
       if (mobileMenuBtn) {
-        openMobileMenu()
         e.preventDefault()
+        setMobileMenuOpen(true)
+        document.body.style.overflow = 'hidden'
         return
       }
       
-      // 8. زر إغلاق القائمة الجانبية
+      // 7️⃣ زر إغلاق القائمة الجانبية
       const closeMobileMenuBtn = target.closest('#closeMobileMenu')
       if (closeMobileMenuBtn) {
-        closeMobileMenu()
         e.preventDefault()
+        setMobileMenuOpen(false)
+        document.body.style.overflow = 'auto'
         return
       }
       
-      // 9. أزرار القائمة الجانبية
-      const mobileNavButton = target.closest('.mobile-nav-links button')
-      if (mobileNavButton) {
-        const buttonText = mobileNavButton.textContent
-        const sections: Record<string, string> = {
-          'الرئيسية': 'home',
-          'الأدوات': 'tools',
-          'الفئات': 'categories',
-          'من نحن': 'about',
-          'اتصل بنا': 'contact'
-        }
-        
-        const sectionId = sections[buttonText || '']
-        if (sectionId) {
-          const element = document.getElementById(sectionId)
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth' })
-          }
-        }
-        closeMobileMenu()
+      // 8️⃣ النقر خارج القائمة الجانبية لإغلاقها
+      const mobileMenu = document.getElementById('mobileMenu')
+      if (
+        mobileMenuOpen &&
+        mobileMenu &&
+        !mobileMenu.contains(target) &&
+        !target.closest('#mobileMenuBtn')
+      ) {
         e.preventDefault()
+        setMobileMenuOpen(false)
+        document.body.style.overflow = 'auto'
         return
       }
       
-      // 10. زر العودة للأعلى
+      // 9️⃣ زر العودة للأعلى
       const backToTopBtn = target.closest('#backToTop')
       if (backToTopBtn) {
+        e.preventDefault()
         window.scrollTo({
           top: 0,
           behavior: 'smooth'
         })
+        return
+      }
+      
+      // 🔟 أزرار CTA و Hero
+      const exploreToolsBtn = target.closest('#exploreToolsBtn')
+      if (exploreToolsBtn) {
         e.preventDefault()
+        document.getElementById('tools')?.scrollIntoView({ behavior: 'smooth' })
+        return
+      }
+      
+      const watchDemoBtn = target.closest('#watchDemoBtn')
+      if (watchDemoBtn) {
+        e.preventDefault()
+        // يمكن فتح modal أو تنفيذ أي action هنا
+        return
+      }
+      
+      const ctaBtn = target.closest('.cta-btn')
+      if (ctaBtn) {
+        e.preventDefault()
+        // يمكن فتح modal تسجيل هنا
         return
       }
     }
     
-    // إضافة الـ event listener مرة واحدة على document
-    document.addEventListener('click', handleClick)
+    document.addEventListener('click', handleGlobalClick)
     
-    // تنظيف الـ event listener عند unmount
     return () => {
-      document.removeEventListener('click', handleClick)
+      document.removeEventListener('click', handleGlobalClick)
     }
-  }, [handleCategoryFilter, handlePageChange, handleViewChange, toggleTheme, openMobileMenu, closeMobileMenu, searchParams])
-  
+  }, [
+    handleCategoryFilter, 
+    handlePageChange, 
+    toggleTheme, 
+    mobileMenuOpen, 
+    searchParams
+  ])
+
+  // ✅ تطبيق عرض الأدوات (Grid/List) بناءً على activeView
+  useEffect(() => {
+    const container = document.getElementById('toolsGridContainer')
+    if (container) {
+      if (activeView === 'list') {
+        container.classList.add('list-view')
+      } else {
+        container.classList.remove('list-view')
+      }
+    }
+  }, [activeView])
+
+  // ✅ تهيئة الثيم عند تحميل الصفحة
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('toolhub-theme') as 'light' | 'dark' | null
+    if (savedTheme) {
+      setTheme(savedTheme)
+      document.documentElement.setAttribute('data-theme', savedTheme)
+    }
+    
+    const updateThemeIcon = () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light'
+      const themeIcon = document.querySelector('#themeToggle i')
+      if (themeIcon) {
+        themeIcon.className = currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'
+      }
+    }
+    
+    updateThemeIcon()
+  }, [])
+
   // ✅ Event Delegation للبحث (input events)
   useEffect(() => {
     let searchTimeout: NodeJS.Timeout
@@ -303,7 +275,6 @@ export default function ClientApp({ }: ClientAppProps) {
     const handleInput = (e: Event) => {
       const target = e.target as HTMLInputElement
       
-      // البحث
       if (target.id === 'searchInput') {
         clearTimeout(searchTimeout)
         searchTimeout = setTimeout(() => {
@@ -319,13 +290,12 @@ export default function ClientApp({ }: ClientAppProps) {
       clearTimeout(searchTimeout)
     }
   }, [handleSearch])
-  
+
   // ✅ Event Delegation للترتيب (change events)
   useEffect(() => {
     const handleChange = (e: Event) => {
       const target = e.target as HTMLSelectElement
       
-      // ترتيب الأدوات
       if (target.id === 'sortSelect') {
         handleSortChange(target.value)
       }
@@ -337,7 +307,7 @@ export default function ClientApp({ }: ClientAppProps) {
       document.removeEventListener('change', handleChange)
     }
   }, [handleSortChange])
-  
+
   // ✅ إخفاء loading overlay بعد التحميل
   useEffect(() => {
     const overlay = document.getElementById('loadingOverlay')
@@ -347,7 +317,7 @@ export default function ClientApp({ }: ClientAppProps) {
       }, 1000)
     }
   }, [])
-  
+
   // ✅ إظهار/إخفاء زر العودة للأعلى
   useEffect(() => {
     const handleScroll = () => {
@@ -367,14 +337,39 @@ export default function ClientApp({ }: ClientAppProps) {
       window.removeEventListener('scroll', handleScroll)
     }
   }, [])
-  
-  // ✅ تنظيف عند unmount
+
+  // ✅ إغلاق القائمة الجانبية عند الضغط على زر الهروب (Escape)
   useEffect(() => {
-    return () => {
-      // تنظيف أي event listeners إضافية
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && mobileMenuOpen) {
+        setMobileMenuOpen(false)
+        document.body.style.overflow = 'auto'
+      }
     }
-  }, [])
-  
+    
+    window.addEventListener('keydown', handleEscape)
+    
+    return () => {
+      window.removeEventListener('keydown', handleEscape)
+    }
+  }, [mobileMenuOpen])
+
+  // ✅ إغلاق القائمة الجانبية عند تغيير حجم النافذة
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 1024 && mobileMenuOpen) {
+        setMobileMenuOpen(false)
+        document.body.style.overflow = 'auto'
+      }
+    }
+    
+    window.addEventListener('resize', handleResize)
+    
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [mobileMenuOpen])
+
   return (
     <>
       {/* Mobile Menu */}
@@ -386,11 +381,11 @@ export default function ClientApp({ }: ClientAppProps) {
         </div>
         <div className="mobile-menu-content">
           <ul className="mobile-nav-links">
-            <li><button>الرئيسية</button></li>
-            <li><button>الأدوات</button></li>
-            <li><button>الفئات</button></li>
-            <li><button>من نحن</button></li>
-            <li><button>اتصل بنا</button></li>
+            <li><button data-section="home">الرئيسية</button></li>
+            <li><button data-section="tools">الأدوات</button></li>
+            <li><button data-section="categories">الفئات</button></li>
+            <li><button data-section="about">من نحن</button></li>
+            <li><button data-section="contact">اتصل بنا</button></li>
           </ul>
         </div>
       </div>
