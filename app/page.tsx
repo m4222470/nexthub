@@ -92,8 +92,7 @@ function deriveReviewsCount(rating: number, createdDate: string): number {
   const ratingScore = rating || 3.5
   const daysOld = (Date.now() - new Date(createdDate).getTime()) / (1000 * 60 * 60 * 24)
   
-  // منطق ذكي للاشتقاق
-  let reviews = 50 // الحد الأدنى
+  let reviews = 50
   
   if (ratingScore >= 4.7) {
     reviews = 2000 + Math.min(Math.floor(daysOld / 7) * 50, 5000)
@@ -149,7 +148,6 @@ function getSmartScore(tool: Tool): number {
   
   if (tool.price === 0) score += 15
   
-  // استخدام الحقول المشتقة
   const popularityScore = Math.min(Math.log10((tool.reviews || 0) + 1) * 5, 20)
   score += popularityScore
   
@@ -180,7 +178,6 @@ function getWhyThisTool(tool: Tool): string[] {
     reasons.push("سعر معقول")
   }
   
-  // استخدام الحقول المشتقة
   if (tool.reviews >= 1000) {
     reasons.push("شائعة جداً")
   } else if (tool.reviews >= 100) {
@@ -244,7 +241,6 @@ function ToolBadges({ tool }: { tool: Tool }) {
 function filterTools(tools: Tool[], filters: Filters): Tool[] {
   let results = [...tools]
   
-  // فلترة بالنص
   if (filters.query && filters.query.trim()) {
     const terms = filters.query.toLowerCase().split(' ').filter(term => term.length > 0)
     results = results.filter(tool => {
@@ -256,12 +252,10 @@ function filterTools(tools: Tool[], filters: Filters): Tool[] {
     })
   }
   
-  // فلترة بالفئة
   if (filters.category && filters.category !== 'all') {
     results = results.filter(tool => tool.category === filters.category)
   }
   
-  // الترتيب
   switch (filters.sort) {
     case 'rating':
       results.sort((a, b) => b.rating - a.rating)
@@ -305,42 +299,8 @@ function extractTags(description: string): string[] {
   return [...new Set(tags)].slice(0, 5)
 }
 
-// تكوين القوائم الموجهة
-const BEST_LISTS_CONFIG = {
-  writing: {
-    title: "أفضل أدوات الذكاء الاصطناعي للكتابة والمحتوى",
-    description: "مجموعة مختارة من أفضل أدوات الكتابة بالذكاء الاصطناعي لإنشاء محتوى متميز",
-    icon: "fas fa-pen",
-    color: "#667eea",
-    filter: (tool: Tool) => tool.category === "writing" && tool.rating >= 4.3,
-    limit: 7
-  },
-  free: {
-    title: "أفضل أدوات الذكاء الاصطناعي المجانية",
-    description: "أدوات ذكاء اصطناعي مجانية بالكامل لجميع المهام",
-    icon: "fas fa-gift",
-    color: "#10b981",
-    filter: (tool: Tool) => tool.price === 0,
-    limit: 9
-  },
-  students: {
-    title: "أفضل أدوات الذكاء الاصطناعي للطلاب",
-    description: "أدوات ذكاء اصطناعي مفيدة للطلاب والدراسة والتعلم",
-    icon: "fas fa-graduation-cap",
-    color: "#4facfe",
-    filter: (tool: Tool) => 
-      (tool.category === "writing" && tool.price === 0) ||
-      (tool.description && (
-        tool.description.includes("طلاب") || 
-        tool.description.includes("تعليم") || 
-        tool.description.includes("دراسة")
-      )),
-    limit: 6
-  }
-}
-
 // ==============================
-// 3️⃣ Data Fetching (Server Component) - المعدلة
+// 3️⃣ Data Fetching (Server Component)
 // ==============================
 async function getTools(): Promise<Tool[]> {
   try {
@@ -364,7 +324,7 @@ async function getTools(): Promise<Tool[]> {
         'Content-Type': 'application/json',
         'Prefer': 'return=representation'
       },
-      next: { revalidate: 3600 }
+      cache: 'no-store' // 🔥 الإضافة المطلوبة هنا (بدلاً من revalidate: 3600)
     })
     
     if (!response.ok) {
@@ -443,10 +403,8 @@ async function HomePageContent({
 }: {
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
-  // جلب البيانات
   const allTools = await getTools()
   
-  // تحضير الفلاتر من URL
   const filters: Filters = {
     query: typeof searchParams.query === 'string' ? searchParams.query : '',
     category: typeof searchParams.category === 'string' ? searchParams.category : 'all',
@@ -454,22 +412,18 @@ async function HomePageContent({
     page: typeof searchParams.page === 'string' ? parseInt(searchParams.page) || 1 : 1
   }
   
-  // تطبيق الفلترة والترتيب
   const filteredTools = filterTools(allTools, filters)
   
-  // Pagination
   const PER_PAGE = 20
   const totalPages = Math.ceil(filteredTools.length / PER_PAGE)
   const startIndex = (filters.page - 1) * PER_PAGE
   const endIndex = startIndex + PER_PAGE
   const paginatedTools = filteredTools.slice(startIndex, endIndex)
   
-  // إحصائيات
   const totalTools = allTools.length
   const freeTools = allTools.filter(t => t.price === 0).length
   const categoriesCount = [...new Set(allTools.map(t => t.category))].length
   
-  // إنشاء Structured Data للـSEO
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
@@ -491,29 +445,16 @@ async function HomePageContent({
 
   return (
     <>
-      {/* Structured Data للـSEO */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      
-      {/* Loading Overlay */}
-      <div className="loading-overlay" id="loadingOverlay">
-        <div className="loading-minimal">
-          <div className="loading-logo-minimal">
-            <i className="fas fa-robot logo-icon-3d"></i>
-          </div>
-          <div className="loading-text-minimal">
-            <p>جاري تحميل العالم الذكي...</p>
-          </div>
-        </div>
-      </div>
 
-      {/* Floating Elements */}
+      {/* ✅ تم إزالة Loading Overlay المكرر من هنا */}
+      
       <div className="floating-element" style={{ width: '300px', height: '300px', top: '10%', right: '10%' }}></div>
       <div className="floating-element" style={{ width: '200px', height: '200px', bottom: '20%', left: '5%' }}></div>
       
-      {/* Header */}
       <header>
         <a href="/" className="logo" aria-label="ToolHub - العودة للرئيسية">
           <i className="fas fa-robot logo-icon-3d"></i>
@@ -540,9 +481,7 @@ async function HomePageContent({
         </div>
       </header>
 
-      {/* Main Content */}
       <main id="main-content">
-        {/* Hero Section */}
         <section className="hero-basic" id="home">
           <div className="hero-content">
             <h1 className="hero-title">
@@ -563,7 +502,6 @@ async function HomePageContent({
               </button>
             </div>
 
-            {/* Stats Grid */}
             <div className="stats-grid">
               <div className="stat-item">
                 <div className="stat-number">{totalTools}+</div>
@@ -585,7 +523,6 @@ async function HomePageContent({
           </div>
         </section>
 
-        {/* Search Section */}
         <section className="search-section" id="search">
           <div className="container">
             <div className="search-container">
@@ -604,7 +541,6 @@ async function HomePageContent({
                 </button>
               </div>
               
-              {/* Quick Filters */}
               <div className="quick-filters">
                 <button className={`filter-btn ${filters.category === 'all' ? 'active' : ''}`} data-category="all">
                   الكل
@@ -630,14 +566,12 @@ async function HomePageContent({
           </div>
         </section>
 
-        {/* Tools Section */}
         <section className="tools-section" id="tools">
           <div className="container">
             <div className="section-header">
               <h2>الأدوات المميزة</h2>
               <p>اكتشف أفضل أدوات الذكاء الاصطناعي المختارة بعناية</p>
               
-              {/* ✅ التعديل: أزرار تبديل العرض ثابتة بدون activeView */}
               <div className="view-toggle">
                 <button id="gridViewBtn" className="view-btn active">
                   <i className="fas fa-th-large"></i>
@@ -650,7 +584,6 @@ async function HomePageContent({
               </div>
             </div>
 
-            {/* Results Info */}
             <div className="results-info">
               <div className="results-count">
                 <span>{paginatedTools.length}</span>
@@ -668,7 +601,6 @@ async function HomePageContent({
                   </select>
                 </div>
                 
-                {/* Pagination Controls */}
                 <div className="pagination-controls">
                   <button 
                     className="pagination-btn prev-btn" 
@@ -704,7 +636,6 @@ async function HomePageContent({
               </div>
             </div>
 
-            {/* Tools Grid - ✅ التأكد من وجود ID الصحيح */}
             <div id="toolsGridContainer" className="tools-grid-container">
               {paginatedTools.map((tool) => {
                 const whyReasons = getWhyThisTool(tool)
@@ -797,7 +728,6 @@ async function HomePageContent({
               })}
             </div>
 
-            {/* Pagination Footer */}
             <div className="pagination-footer">
               <div className="pagination-info">
                 الصفحة <span>{filters.page}</span> من <span>{totalPages}</span>
@@ -806,7 +736,6 @@ async function HomePageContent({
           </div>
         </section>
 
-        {/* Categories Section */}
         <section className="categories-section" id="categories">
           <div className="container">
             <div className="section-header">
@@ -831,7 +760,6 @@ async function HomePageContent({
           </div>
         </section>
 
-        {/* Features Section */}
         <section className="features-section" id="features">
           <div className="container">
             <div className="section-header">
@@ -867,7 +795,6 @@ async function HomePageContent({
           </div>
         </section>
 
-        {/* Testimonials Section */}
         <section className="testimonials-section" id="testimonials">
           <div className="container">
             <div className="section-header">
@@ -905,7 +832,6 @@ async function HomePageContent({
           </div>
         </section>
 
-        {/* CTA Section */}
         <section className="cta-section" id="cta">
           <div className="container">
             <div className="cta-content">
@@ -919,7 +845,6 @@ async function HomePageContent({
           </div>
         </section>
 
-        {/* Footer */}
         <footer>
           <div className="container">
             <div className="footer-content">
@@ -969,13 +894,11 @@ async function HomePageContent({
           </div>
         </footer>
 
-        {/* Back to Top Button */}
         <button className="back-to-top" id="backToTop" aria-label="العودة للأعلى">
           <i className="fas fa-arrow-up"></i>
         </button>
       </main>
 
-      {/* ✅ Client Component داخل HomePageContent */}
       <ClientApp />
     </>
   )
