@@ -196,7 +196,8 @@ h1, h2, h3, h4, h5, h6 {
 .loading-overlay.hidden {
     opacity: 0;
     visibility: hidden;
-    pointer-events: none;
+    pointer-events: none; /* 🔥 الإضافة المطلوبة هنا */
+    transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
 .loading-minimal {
@@ -680,22 +681,22 @@ section {
     .desktop-nav {
         display: none;
     }
-
+    
     .mobile-menu-btn {
         display: flex;
     }
-
+    
     .hero-actions {
         flex-direction: column;
         align-items: center;
     }
-
+    
     .hero-btn {
         width: 100%;
         max-width: 300px;
         justify-content: center;
     }
-
+    
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -705,33 +706,33 @@ section {
     header {
         padding: 0 1rem;
     }
-
+    
     .hero-title {
         font-size: 2.5rem;
     }
-
+    
     .hero-subtitle {
         font-size: 1.2rem;
     }
-
+    
     .stats-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
     }
-
+    
     .stat-item {
         padding: 1.5rem;
     }
-
+    
     .stat-number {
         font-size: 2rem;
     }
-
+    
     .best-links {
         flex-direction: column;
         align-items: center;
     }
-
+    
     .best-link {
         width: 100%;
         max-width: 300px;
@@ -902,7 +903,7 @@ body {
     display: flex;
     flex-direction: column;
     height: 100%;
-
+    
     contain: layout style paint;
     content-visibility: auto;
     backface-visibility: hidden;
@@ -3070,60 +3071,60 @@ footer::before {
     h1 { font-size: 2.5rem; }
     h2 { font-size: 2rem; }
     h3 { font-size: 1.5rem; }
-
+    
     .search-container {
         padding: 2rem;
     }
-
+    
     .tool-card-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 2rem;
     }
-
+    
     .tool-icon {
         width: 70px;
         height: 70px;
         font-size: 2rem;
     }
-
+    
     .footer-content {
         grid-template-columns: 1fr;
         gap: 3rem;
     }
-
+    
     .toast-container {
         left: 1rem;
         right: 1rem;
         max-width: none;
     }
-
+    
     .mission-stats {
         gap: 2rem;
     }
-
+    
     .mission-stat div:first-child {
         font-size: 2rem;
     }
-
+    
     .pagination-controls {
         justify-content: center;
     }
-
+    
     .page-numbers {
         justify-content: center;
     }
-
+    
     .tool-card {
         border-radius: 20px;
     }
-
+    
     .tool-card-header,
     .tool-card-body,
     .tool-card-footer {
         padding: 1.5rem;
     }
-
+    
     .install-btn {
         left: 10px;
         right: 10px;
@@ -3131,41 +3132,41 @@ footer::before {
         width: calc(100% - 20px);
         justify-content: center;
     }
-
+    
     .categories-grid {
         grid-template-columns: 1fr;
     }
-
+    
     .features-grid {
         grid-template-columns: 1fr;
     }
-
+    
     .testimonials-slider {
         grid-template-columns: 1fr;
     }
-
+    
     .related-tools-grid {
         grid-template-columns: 1fr;
     }
-
+    
     .best-list-title {
         font-size: 1.8rem;
     }
-
+    
     .best-list-description {
         font-size: 1rem;
     }
-
+    
     /* Why Section responsive */
     .why-section {
         margin-top: 0.5rem;
         padding-top: 0.5rem;
     }
-
+    
     .why-title {
         font-size: 0.7rem;
     }
-
+    
     .why-list li {
         font-size: 0.7rem;
     }
@@ -3175,21 +3176,21 @@ footer::before {
     .hero-title {
         font-size: 2.2rem;
     }
-
+    
     .tools-grid-container {
         gap: 1.5rem;
     }
-
+    
     .pagination-controls {
         flex-direction: column;
         align-items: center;
     }
-
+    
     .page-numbers {
         order: 3;
         margin-top: 1rem;
     }
-
+    
     .best-list-rank {
         width: 40px;
         height: 40px;
