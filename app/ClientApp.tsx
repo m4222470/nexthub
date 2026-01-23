@@ -95,9 +95,13 @@ export default function ClientApp({ }: ClientAppProps) {
     console.log('🎯 Event Delegation جاهز')
     
     const handleGlobalClick = (e: Event) => {
-      e.preventDefault() // ✅ منع السلوك الافتراضي أولاً
-      
+      // ✅ التحقق من data-prevent-default أولاً ومنع السلوك الافتراضي
       const target = e.target as HTMLElement
+      const elementWithPreventDefault = target.closest('[data-prevent-default]')
+      
+      if (elementWithPreventDefault) {
+        e.preventDefault()
+      }
       
       // 🔍 البحث عن العنصر الذي يحتوي على data attribute مباشرة
       const elementWithData = findElementWithDataAttribute(target)
@@ -159,7 +163,6 @@ export default function ClientApp({ }: ClientAppProps) {
       // زر الثيم
       if (target.id === 'themeToggle' || target.closest('#themeToggle')) {
         console.log('🖱️ تبديل الثيم')
-        e.preventDefault()
         toggleTheme()
         return
       }
@@ -167,7 +170,6 @@ export default function ClientApp({ }: ClientAppProps) {
       // زر فتح القائمة الجانبية
       if (target.id === 'mobileMenuBtn' || target.closest('#mobileMenuBtn')) {
         console.log('🖱️ فتح القائمة الجانبية')
-        e.preventDefault()
         setMobileMenuOpen(true)
         document.body.style.overflow = 'hidden'
         return
@@ -176,7 +178,6 @@ export default function ClientApp({ }: ClientAppProps) {
       // زر إغلاق القائمة الجانبية
       if (target.id === 'closeMobileMenu' || target.closest('#closeMobileMenu')) {
         console.log('🖱️ إغلاق القائمة الجانبية')
-        e.preventDefault()
         setMobileMenuOpen(false)
         document.body.style.overflow = 'auto'
         return
@@ -185,7 +186,6 @@ export default function ClientApp({ }: ClientAppProps) {
       // زر العودة للأعلى
       if (target.id === 'backToTop' || target.closest('#backToTop')) {
         console.log('🖱️ العودة للأعلى')
-        e.preventDefault()
         window.scrollTo({
           top: 0,
           behavior: 'smooth'
@@ -196,7 +196,6 @@ export default function ClientApp({ }: ClientAppProps) {
       // زر استكشاف الأدوات
       if (target.id === 'exploreToolsBtn' || target.closest('#exploreToolsBtn')) {
         console.log('🖱️ استكشاف الأدوات')
-        e.preventDefault()
         document.getElementById('tools')?.scrollIntoView({ behavior: 'smooth' })
         return
       }
@@ -204,14 +203,12 @@ export default function ClientApp({ }: ClientAppProps) {
       // أزرار عرض الشبكة/القائمة
       if (target.id === 'gridViewBtn' || target.closest('#gridViewBtn')) {
         console.log('🖱️ عرض الشبكة')
-        e.preventDefault()
         setActiveView('grid')
         return
       }
       
       if (target.id === 'listViewBtn' || target.closest('#listViewBtn')) {
         console.log('🖱️ عرض القائمة')
-        e.preventDefault()
         setActiveView('list')
         return
       }
@@ -219,7 +216,6 @@ export default function ClientApp({ }: ClientAppProps) {
       // أزرار الصفحة السابقة/التالية
       if (target.id === 'prevPageBtn' || target.closest('#prevPageBtn')) {
         console.log('🖱️ زر الصفحة السابقة')
-        e.preventDefault()
         const currentPage = parseInt(searchParams.get('page') || '1')
         if (currentPage > 1) {
           handlePageChange(currentPage - 1)
@@ -229,7 +225,6 @@ export default function ClientApp({ }: ClientAppProps) {
       
       if (target.id === 'nextPageBtn' || target.closest('#nextPageBtn')) {
         console.log('🖱️ زر الصفحة التالية')
-        e.preventDefault()
         const currentPage = parseInt(searchParams.get('page') || '1')
         handlePageChange(currentPage + 1)
         return
@@ -410,11 +405,11 @@ export default function ClientApp({ }: ClientAppProps) {
         </div>
         <div className="mobile-menu-content">
           <ul className="mobile-nav-links">
-            <li><button data-section="home">الرئيسية</button></li>
-            <li><button data-section="tools">الأدوات</button></li>
-            <li><button data-section="categories">الفئات</button></li>
-            <li><button data-section="about">من نحن</button></li>
-            <li><button data-section="contact">اتصل بنا</button></li>
+            <li><button data-section="home" data-prevent-default="true">الرئيسية</button></li>
+            <li><button data-section="tools" data-prevent-default="true">الأدوات</button></li>
+            <li><button data-section="categories" data-prevent-default="true">الفئات</button></li>
+            <li><button data-section="about" data-prevent-default="true">من نحن</button></li>
+            <li><button data-section="contact" data-prevent-default="true">اتصل بنا</button></li>
           </ul>
         </div>
       </div>
