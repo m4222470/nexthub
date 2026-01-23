@@ -16,16 +16,6 @@
  * - ClientApp.tsx (client component)
  * - Separate client components with 'use client' directive
  * ------------------------------------------------------------
- * Current allowed patterns (safe):
- * - Pure functions for data transformation
- * - JSX rendering
- * - Data fetching (getTools)
- * - Static calculations
- * ------------------------------------------------------------
- * NOTE: This file is intentionally kept as a single file for
- *       easier development. When it grows beyond 500 lines,
- *       consider splitting into separate modules.
- * ------------------------------------------------------------
  */
 
 import { Suspense } from "react"
@@ -324,7 +314,8 @@ async function getTools(): Promise<Tool[]> {
         'Content-Type': 'application/json',
         'Prefer': 'return=representation'
       },
-      cache: 'no-store'
+      // ✅ التغيير: استخدام ISR مع تحديث كل ساعة بدلاً من 'no-store'
+      next: { revalidate: 3600 } // تحديث كل ساعة
     })
     
     if (!response.ok) {
@@ -450,8 +441,6 @@ async function HomePageContent({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      {/* ✅ تم إزالة Loading Overlay المكرر من هنا */}
-      
       <div className="floating-element" style={{ width: '300px', height: '300px', top: '10%', right: '10%' }}></div>
       <div className="floating-element" style={{ width: '200px', height: '200px', bottom: '20%', left: '5%' }}></div>
       
@@ -466,7 +455,7 @@ async function HomePageContent({
             <li>
               <button 
                 data-section="home"
-                onClick={(e) => e.preventDefault()}
+                data-prevent-default="true"
               >
                 الرئيسية
               </button>
@@ -474,7 +463,7 @@ async function HomePageContent({
             <li>
               <button 
                 data-section="tools"
-                onClick={(e) => e.preventDefault()}
+                data-prevent-default="true"
               >
                 الأدوات
               </button>
@@ -482,7 +471,7 @@ async function HomePageContent({
             <li>
               <button 
                 data-section="categories"
-                onClick={(e) => e.preventDefault()}
+                data-prevent-default="true"
               >
                 الفئات
               </button>
@@ -490,7 +479,7 @@ async function HomePageContent({
             <li>
               <button 
                 data-section="about"
-                onClick={(e) => e.preventDefault()}
+                data-prevent-default="true"
               >
                 من نحن
               </button>
@@ -498,7 +487,7 @@ async function HomePageContent({
             <li>
               <button 
                 data-section="contact"
-                onClick={(e) => e.preventDefault()}
+                data-prevent-default="true"
               >
                 اتصل بنا
               </button>
@@ -594,14 +583,14 @@ async function HomePageContent({
                 <button 
                   className={`filter-btn ${filters.category === 'all' ? 'active' : ''}`} 
                   data-category="all"
-                  onClick={(e) => e.preventDefault()}
+                  data-prevent-default="true"
                 >
                   الكل
                 </button>
                 <button 
                   className={`filter-btn ${filters.category === 'writing' ? 'active' : ''}`} 
                   data-category="writing"
-                  onClick={(e) => e.preventDefault()}
+                  data-prevent-default="true"
                 >
                   <i className="fas fa-pen"></i>
                   الكتابة
@@ -609,7 +598,7 @@ async function HomePageContent({
                 <button 
                   className={`filter-btn ${filters.category === 'design' ? 'active' : ''}`} 
                   data-category="design"
-                  onClick={(e) => e.preventDefault()}
+                  data-prevent-default="true"
                 >
                   <i className="fas fa-palette"></i>
                   التصميم
@@ -617,7 +606,7 @@ async function HomePageContent({
                 <button 
                   className={`filter-btn ${filters.category === 'video' ? 'active' : ''}`} 
                   data-category="video"
-                  onClick={(e) => e.preventDefault()}
+                  data-prevent-default="true"
                 >
                   <i className="fas fa-video"></i>
                   الفيديو
@@ -625,7 +614,7 @@ async function HomePageContent({
                 <button 
                   className={`filter-btn ${filters.category === 'code' ? 'active' : ''}`} 
                   data-category="code"
-                  onClick={(e) => e.preventDefault()}
+                  data-prevent-default="true"
                 >
                   <i className="fas fa-code"></i>
                   البرمجة
@@ -687,7 +676,7 @@ async function HomePageContent({
                           key={pageNum} 
                           className={`page-number ${pageNum === filters.page ? 'active' : ''}`}
                           data-page={pageNum}
-                          onClick={(e) => e.preventDefault()}
+                          data-prevent-default="true"
                         >
                           {pageNum}
                         </button>
@@ -821,7 +810,7 @@ async function HomePageContent({
                     className="category-card" 
                     key={category} 
                     data-category={category}
-                    onClick={(e) => e.preventDefault()}
+                    data-prevent-default="true"
                   >
                     <div className="category-icon">
                       <CategoryIcon category={category} />
@@ -948,7 +937,7 @@ async function HomePageContent({
                   <li>
                     <button 
                       data-section="home"
-                      onClick={(e) => e.preventDefault()}
+                      data-prevent-default="true"
                     >
                       الرئيسية
                     </button>
@@ -956,7 +945,7 @@ async function HomePageContent({
                   <li>
                     <button 
                       data-section="tools"
-                      onClick={(e) => e.preventDefault()}
+                      data-prevent-default="true"
                     >
                       الأدوات
                     </button>
@@ -964,7 +953,7 @@ async function HomePageContent({
                   <li>
                     <button 
                       data-section="categories"
-                      onClick={(e) => e.preventDefault()}
+                      data-prevent-default="true"
                     >
                       الفئات
                     </button>
@@ -972,7 +961,7 @@ async function HomePageContent({
                   <li>
                     <button 
                       data-section="about"
-                      onClick={(e) => e.preventDefault()}
+                      data-prevent-default="true"
                     >
                       من نحن
                     </button>
@@ -980,7 +969,7 @@ async function HomePageContent({
                   <li>
                     <button 
                       data-section="contact"
-                      onClick={(e) => e.preventDefault()}
+                      data-prevent-default="true"
                     >
                       اتصل بنا
                     </button>
