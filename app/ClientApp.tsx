@@ -80,15 +80,15 @@ export default function ClientApp({ }: ClientAppProps) {
   }, [router, pathname, searchParams])
 
   // ============================================
-  // 🎯 Event Delegation المركزي
+  // 🎯 Event Delegation المركزي مع Type Safety
   // ============================================
   useEffect(() => {
     const handleGlobalClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement
       
-      // 1️⃣ فلترة الفئات
-      const filterBtn = target.closest('.filter-btn')
-      if (filterBtn && filterBtn.dataset.category) {
+      // 1️⃣ فلترة الفئات - مع تحقق من HTMLElement
+      const filterBtn = (target as Element).closest('.filter-btn')
+      if (filterBtn instanceof HTMLElement && filterBtn.dataset.category) {
         e.preventDefault()
         handleCategoryFilter(filterBtn.dataset.category)
         return
@@ -113,10 +113,10 @@ export default function ClientApp({ }: ClientAppProps) {
         return
       }
       
-      const pageNumber = target.closest('.page-number')
-      if (pageNumber) {
+      const pageNumber = (target as Element).closest('.page-number')
+      if (pageNumber instanceof HTMLElement && pageNumber.dataset.page) {
         e.preventDefault()
-        const page = parseInt((pageNumber as HTMLButtonElement).dataset.page || '1')
+        const page = parseInt(pageNumber.dataset.page || '1')
         handlePageChange(page)
         return
       }
@@ -136,11 +136,11 @@ export default function ClientApp({ }: ClientAppProps) {
         return
       }
       
-      // 4️⃣ أزرار التنقل باستخدام data-section
-      const navButton = target.closest('[data-section]')
-      if (navButton) {
+      // 4️⃣ أزرار التنقل باستخدام data-section - مع تحقق من HTMLElement
+      const navButton = (target as Element).closest('[data-section]')
+      if (navButton instanceof HTMLElement && navButton.dataset.section) {
         e.preventDefault()
-        const section = (navButton as HTMLElement).dataset.section
+        const section = navButton.dataset.section
         if (section) {
           const element = document.getElementById(section)
           if (element) {
