@@ -344,13 +344,9 @@ const BEST_LISTS_CONFIG = {
 // ==============================
 async function getTools(): Promise<Tool[]> {
   try {
-    // NOTE: Using NEXT_PUBLIC_ prefix for now. In production,
-    // consider renaming to SUPABASE_ANON_KEY without NEXT_PUBLIC_
-    // since this key is only used server-side.
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY
 
-    // ✅ أمان محسن: التحقق من وجود المفاتيح
     if (!supabaseUrl || !supabaseKey) {
       if (process.env.NODE_ENV === 'development') {
         console.warn('⚠️ Supabase credentials missing. Using fallback.')
@@ -377,13 +373,11 @@ async function getTools(): Promise<Tool[]> {
     
     const tools = await response.json()
     
-    // ✅ Normalize tools مع الاشتقاق الذكي
     return tools.map((tool: any) => {
       const rating = tool.rating || 3.5
       const description = tool.description || 'لا يوجد وصف متاح'
       const createdDate = tool.created_at || new Date().toISOString()
       
-      // ✅ استخدام دوال الاشتقاق المركزية
       const reviewsCount = deriveReviewsCount(rating, createdDate)
       const isFeatured = deriveIsFeatured(rating)
       const isPopular = deriveIsPopular(rating)
@@ -643,6 +637,7 @@ async function HomePageContent({
               <h2>الأدوات المميزة</h2>
               <p>اكتشف أفضل أدوات الذكاء الاصطناعي المختارة بعناية</p>
               
+              {/* ✅ التعديل: أزرار تبديل العرض ثابتة بدون activeView */}
               <div className="view-toggle">
                 <button id="gridViewBtn" className="view-btn active">
                   <i className="fas fa-th-large"></i>
@@ -667,7 +662,6 @@ async function HomePageContent({
                   <label htmlFor="sortSelect">ترتيب حسب:</label>
                   <select id="sortSelect" defaultValue={filters.sort}>
                     <option value="smart">الأذكى (مقترح)</option>
-                    <option value="featured">الأكثر تميزًا</option>
                     <option value="rating">الأعلى تقييمًا</option>
                     <option value="popular">الأكثر شعبية</option>
                     <option value="newest">الأحدث</option>
@@ -710,7 +704,7 @@ async function HomePageContent({
               </div>
             </div>
 
-            {/* Tools Grid */}
+            {/* Tools Grid - ✅ التأكد من وجود ID الصحيح */}
             <div id="toolsGridContainer" className="tools-grid-container">
               {paginatedTools.map((tool) => {
                 const whyReasons = getWhyThisTool(tool)
