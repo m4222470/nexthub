@@ -1,4 +1,15 @@
 /* ============================================
+   🔥 PREVENT FOUC - منع الوميض وتحسينات الأداء
+   ============================================ */
+html {
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* ============================================
    CRITICAL CSS - الأنماط الحرجة فقط
    ============================================ */
 :root {
@@ -3243,253 +3254,51 @@ footer::before {
 }
 
 /* ============================================
-   🎯 تحسينات للأداء والتجربة (المضافة حديثاً)
+   🔥 تحسينات للأداء والنظام
    ============================================ */
 
-/* تحسين عرض الشبكة/القائمة */
-#toolsGridContainer.list-view {
-    grid-template-columns: 1fr !important;
+/* تحسين تحميل الصور */
+img {
+    content-visibility: auto;
+    contain-intrinsic-size: 400px;
 }
 
-.list-view .tool-card {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
+/* تحسين التحميل الأولي */
+.hero-basic {
+    background-image: 
+        linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%),
+        radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.05) 0%, transparent 50%);
+    background-size: cover, 150% 150%, 150% 150%;
+    background-position: center, 20% 50%, 80% 20%;
+}
+
+/* تحسين وضع القائمة */
+.tools-grid-container.list-view .tool-card {
+    display: flex;
+    flex-direction: row;
     gap: 2rem;
-    padding: 2rem;
+}
+
+.tools-grid-container.list-view .tool-image-container {
+    flex: 0 0 200px;
 }
 
 @media (max-width: 768px) {
-    .list-view .tool-card {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-}
-
-/* تحسينات للتفاعل */
-button[data-category]:hover,
-button[data-page]:hover,
-button[data-section]:hover {
-    transform: translateY(-2px);
-    transition: transform 0.2s ease;
-}
-
-/* تحسين الوصول الشامل */
-@media (prefers-reduced-motion: reduce) {
-    .tool-card,
-    .category-card,
-    .feature-card {
-        animation: none;
-        transition: none;
+    .tools-grid-container.list-view .tool-card {
+        flex-direction: column;
     }
     
-    .logo-icon-3d {
-        animation: none;
+    .tools-grid-container.list-view .tool-image-container {
+        flex: 0 0 auto;
     }
 }
 
-/* تحسينات للشاشات الصغيرة */
-@media (max-width: 768px) {
-    .quick-filters {
-        overflow-x: auto;
-        padding-bottom: 0.5rem;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    .quick-filters::-webkit-scrollbar {
-        height: 4px;
-    }
-    
-    .quick-filters::-webkit-scrollbar-thumb {
-        background: var(--accent-primary);
-        border-radius: 2px;
-    }
-    
-    .page-numbers {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-    
-    .filter-btn,
-    .page-number {
-        min-width: 50px;
-        min-height: 50px;
-    }
-}
-
-/* تحسينات للتحميل */
-.tool-card {
-    animation: slideInUp 0.4s ease-out forwards;
-    animation-delay: calc(var(--card-index, 0) * 0.05s);
-}
-
-.tool-card:nth-child(1) { --card-index: 1; }
-.tool-card:nth-child(2) { --card-index: 2; }
-.tool-card:nth-child(3) { --card-index: 3; }
-.tool-card:nth-child(4) { --card-index: 4; }
-.tool-card:nth-child(5) { --card-index: 5; }
-.tool-card:nth-child(6) { --card-index: 6; }
-.tool-card:nth-child(7) { --card-index: 7; }
-.tool-card:nth-child(8) { --card-index: 8; }
-.tool-card:nth-child(9) { --card-index: 9; }
-.tool-card:nth-child(10) { --card-index: 10; }
-
-/* إصلاح مشكلة التمرير في القائمة الجانبية */
-body.menu-open {
-    overflow: hidden;
-    position: fixed;
-    width: 100%;
-    height: 100%;
-}
-
-.mobile-menu.open ~ main,
-.mobile-menu.open ~ footer {
-    filter: blur(2px);
-    transition: filter 0.3s ease;
-}
-
-/* تحسينات للثيم */
-.theme-transition * {
-    transition: background-color 0.3s ease, 
-                color 0.3s ease, 
-                border-color 0.3s ease;
-}
-
-[data-theme="dark"] .theme-transition * {
-    transition: background-color 0.3s ease, 
-                color 0.3s ease, 
-                border-color 0.3s ease;
-}
-
-/* تحسينات للمحتوى الديناميكي */
-[data-loaded="true"] {
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-/* تحسينات للأزرار أثناء التحميل */
-button:disabled,
-.pagination-btn:disabled,
-.filter-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none !important;
-}
-
-/* تحسينات للبحث */
-.search-input:focus + .search-btn {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-}
-
-/* تحسينات للبطاقات */
-.tool-card:hover .tool-description {
-    -webkit-line-clamp: 6;
-}
-
-.tool-card:hover .tool-image-container img {
-    transform: scale(1.05);
-    transition: transform 0.3s ease;
-}
-
-/* تحسينات للرسوم المتحركة */
-@keyframes fadeInDelayed {
-    0% {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.category-card,
-.feature-card,
-.testimonial-card {
-    animation: fadeInDelayed 0.6s ease-out forwards;
-}
-
-/* تحسينات للاستجابة السريعة */
-@media (hover: hover) {
-    .tool-card:hover {
-        z-index: 10;
-    }
-    
-    .filter-btn:hover:not(.active) {
-        background: var(--bg-tertiary);
-    }
-}
-
-/* تحسينات للأداء */
-.tool-image-container img,
-.tool-hero-image,
-.related-tool-image {
+/* تحسينات للشبكات */
+.categories-grid,
+.features-grid,
+.testimonials-slider,
+.related-tools-grid {
     will-change: transform;
-}
-
-/* تحسينات للطباعة */
-@media print {
-    .mobile-menu-btn,
-    .theme-toggle,
-    .back-to-top,
-    .install-btn,
-    .toast-container {
-        display: none !important;
-    }
-    
-    .tool-card {
-        break-inside: avoid;
-        box-shadow: none;
-        border: 1px solid #ddd;
-    }
-}
-
-/* تحسينات للـ RTL */
-[dir="rtl"] .tool-rating {
-    direction: ltr;
-}
-
-[dir="rtl"] .star-rating {
-    direction: ltr;
-    display: inline-block;
-}
-
-/* تحسينات للخطوط */
-@media (max-width: 768px) {
-    body {
-        font-size: 15px;
-    }
-    
-    h1, h2, h3, h4, h5, h6 {
-        letter-spacing: -0.01em;
-    }
-}
-
-/* تحسينات للتحميل اللطيف */
-.loading-overlay.hidden {
-    transition-delay: 0.2s;
-}
-
-/* تحسينات للصور */
-img[loading="lazy"] {
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-img[loading="lazy"].loaded {
-    opacity: 1;
-}
-
-/* تحسينات للتركيز */
-:focus-visible {
-    outline-offset: 4px;
-}
-
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-select:focus-visible {
-    outline-color: var(--accent-primary);
+    backface-visibility: hidden;
 }
