@@ -51,6 +51,94 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.webmanifest" />
         <meta name="theme-color" content="#667eea" />
+        
+        {/* ✅ إضافة Script لمنع FOUC وتحسين تحميل الثيم */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                // منع الوميض (FOUC) عند تحميل الثيم
+                try {
+                  const savedTheme = localStorage.getItem('toolhub-theme');
+                  const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+                  
+                  // تطبيق الثيم فوراً
+                  document.documentElement.setAttribute('data-theme', initialTheme);
+                  document.documentElement.classList.add('no-transition');
+                  
+                  // إزالة class no-transition بعد تحميل الصفحة
+                  if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', () => {
+                      setTimeout(() => {
+                        document.documentElement.classList.remove('no-transition');
+                        // تحديث أيقونة الثيم
+                        const themeIcon = document.querySelector('#themeToggle i');
+                        if (themeIcon) {
+                          themeIcon.className = initialTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                        }
+                      }, 50);
+                    });
+                  } else {
+                    setTimeout(() => {
+                      document.documentElement.classList.remove('no-transition');
+                      // تحديث أيقونة الثيم
+                      const themeIcon = document.querySelector('#themeToggle i');
+                      if (themeIcon) {
+                        themeIcon.className = initialTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                      }
+                    }, 50);
+                  }
+                  
+                  // مراقبة تغييرات النظام للثيم
+                  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                    const currentTheme = localStorage.getItem('toolhub-theme');
+                    if (!currentTheme || currentTheme === 'auto') {
+                      const newTheme = e.matches ? 'dark' : 'light';
+                      document.documentElement.setAttribute('data-theme', newTheme);
+                      const themeIcon = document.querySelector('#themeToggle i');
+                      if (themeIcon) {
+                        themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                      }
+                    }
+                  });
+                } catch (e) {
+                  console.warn('خطأ في تحميل الثيم:', e);
+                }
+                
+                // تهيئة PWA (تثبيت التطبيق)
+                let deferredPrompt;
+                window.addEventListener('beforeinstallprompt', (e) => {
+                  e.preventDefault();
+                  deferredPrompt = e;
+                  const installBtn = document.getElementById('installBtn');
+                  if (installBtn) {
+                    installBtn.style.display = 'flex';
+                    installBtn.addEventListener('click', async () => {
+                      if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        const { outcome } = await deferredPrompt.userChoice;
+                        if (outcome === 'accepted') {
+                          installBtn.style.display = 'none';
+                        }
+                      }
+                    });
+                  }
+                });
+                
+                // إخفاء loading overlay بعد التحميل
+                window.addEventListener('load', () => {
+                  setTimeout(() => {
+                    const overlay = document.getElementById('loadingOverlay');
+                    if (overlay) {
+                      overlay.classList.add('hidden');
+                    }
+                  }, 1000);
+                });
+              })();
+            `
+          }}
+        />
       </head>
       <body>
         {children}
