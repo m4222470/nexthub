@@ -13,13 +13,13 @@
  *         and cannot use browser-specific features.
  * 
  * ALL INTERACTIVITY must be in:
- * - ClientApp.tsx (client component)
+ * - ClientApp.tsx (client component) - ⚠️ تم إزالته
  * - Separate client components with 'use client' directive
  * ------------------------------------------------------------
  */
 
 import { Suspense } from "react"
-import ClientApp from './ClientApp'
+import InteractiveControls from './InteractiveControls.client'
 
 // ==============================
 // 1️⃣ Type Definitions
@@ -40,7 +40,7 @@ interface Tool {
   tags: string[]
 }
 
-interface Filters {
+interface FiltersState {
   query: string
   category: string
   sort: string
@@ -228,7 +228,7 @@ function ToolBadges({ tool }: { tool: Tool }) {
 }
 
 // فلترة الأدوات
-function filterTools(tools: Tool[], filters: Filters): Tool[] {
+function filterTools(tools: Tool[], filters: FiltersState): Tool[] {
   let results = [...tools]
   
   if (filters.query && filters.query.trim()) {
@@ -314,8 +314,7 @@ async function getTools(): Promise<Tool[]> {
         'Content-Type': 'application/json',
         'Prefer': 'return=representation'
       },
-      // ✅ التغيير: استخدام ISR مع تحديث كل ساعة بدلاً من 'no-store'
-      next: { revalidate: 3600 } // تحديث كل ساعة
+      cache: 'no-store'
     })
     
     if (!response.ok) {
@@ -396,7 +395,7 @@ async function HomePageContent({
 }) {
   const allTools = await getTools()
   
-  const filters: Filters = {
+  const filters: FiltersState = {
     query: typeof searchParams.query === 'string' ? searchParams.query : '',
     category: typeof searchParams.category === 'string' ? searchParams.category : 'all',
     sort: typeof searchParams.sort === 'string' ? searchParams.sort : 'smart',
@@ -452,65 +451,15 @@ async function HomePageContent({
         
         <nav className="desktop-nav" aria-label="التنقل الرئيسي">
           <ul className="nav-links">
-            <li>
-              <button 
-                data-section="home"
-                data-prevent-default="true"
-              >
-                الرئيسية
-              </button>
-            </li>
-            <li>
-              <button 
-                data-section="tools"
-                data-prevent-default="true"
-              >
-                الأدوات
-              </button>
-            </li>
-            <li>
-              <button 
-                data-section="categories"
-                data-prevent-default="true"
-              >
-                الفئات
-              </button>
-            </li>
-            <li>
-              <button 
-                data-section="about"
-                data-prevent-default="true"
-              >
-                من نحن
-              </button>
-            </li>
-            <li>
-              <button 
-                data-section="contact"
-                data-prevent-default="true"
-              >
-                اتصل بنا
-              </button>
-            </li>
+            <li><a href="#home">الرئيسية</a></li>
+            <li><a href="#tools">الأدوات</a></li>
+            <li><a href="#categories">الفئات</a></li>
+            <li><a href="#features">لماذا ToolHub؟</a></li>
+            <li><a href="#contact">اتصل بنا</a></li>
           </ul>
         </nav>
         
-        <div className="header-controls">
-          <button 
-            className="theme-toggle" 
-            id="themeToggle" 
-            aria-label="تبديل وضع السطوع والظلام"
-          >
-            <i className="fas fa-moon"></i>
-          </button>
-          <button 
-            className="mobile-menu-btn" 
-            id="mobileMenuBtn" 
-            aria-label="فتح قائمة التنقل"
-          >
-            <i className="fas fa-bars"></i>
-          </button>
-        </div>
+        <InteractiveControls />
       </header>
 
       <main id="main-content">
@@ -524,17 +473,11 @@ async function HomePageContent({
             </p>
             
             <div className="hero-actions">
-              <button 
-                id="exploreToolsBtn" 
-                className="hero-btn hero-primary"
-              >
+              <a href="#tools" className="hero-btn hero-primary">
                 <i className="fas fa-rocket"></i>
                 استكشاف الأدوات
-              </button>
-              <button 
-                id="watchDemoBtn" 
-                className="hero-btn hero-secondary"
-              >
+              </a>
+              <button className="hero-btn hero-secondary">
                 <i className="fas fa-play-circle"></i>
                 مشاهدة العرض
               </button>
@@ -580,42 +523,22 @@ async function HomePageContent({
               </div>
               
               <div className="quick-filters">
-                <button 
-                  className={`filter-btn ${filters.category === 'all' ? 'active' : ''}`} 
-                  data-category="all"
-                  data-prevent-default="true"
-                >
+                <button className={`filter-btn ${filters.category === 'all' ? 'active' : ''}`} data-category="all">
                   الكل
                 </button>
-                <button 
-                  className={`filter-btn ${filters.category === 'writing' ? 'active' : ''}`} 
-                  data-category="writing"
-                  data-prevent-default="true"
-                >
+                <button className={`filter-btn ${filters.category === 'writing' ? 'active' : ''}`} data-category="writing">
                   <i className="fas fa-pen"></i>
                   الكتابة
                 </button>
-                <button 
-                  className={`filter-btn ${filters.category === 'design' ? 'active' : ''}`} 
-                  data-category="design"
-                  data-prevent-default="true"
-                >
+                <button className={`filter-btn ${filters.category === 'design' ? 'active' : ''}`} data-category="design">
                   <i className="fas fa-palette"></i>
                   التصميم
                 </button>
-                <button 
-                  className={`filter-btn ${filters.category === 'video' ? 'active' : ''}`} 
-                  data-category="video"
-                  data-prevent-default="true"
-                >
+                <button className={`filter-btn ${filters.category === 'video' ? 'active' : ''}`} data-category="video">
                   <i className="fas fa-video"></i>
                   الفيديو
                 </button>
-                <button 
-                  className={`filter-btn ${filters.category === 'code' ? 'active' : ''}`} 
-                  data-category="code"
-                  data-prevent-default="true"
-                >
+                <button className={`filter-btn ${filters.category === 'code' ? 'active' : ''}`} data-category="code">
                   <i className="fas fa-code"></i>
                   البرمجة
                 </button>
@@ -676,7 +599,6 @@ async function HomePageContent({
                           key={pageNum} 
                           className={`page-number ${pageNum === filters.page ? 'active' : ''}`}
                           data-page={pageNum}
-                          data-prevent-default="true"
                         >
                           {pageNum}
                         </button>
@@ -806,12 +728,7 @@ async function HomePageContent({
               {Array.from(new Set(allTools.map(t => t.category))).slice(0, 6).map((category) => {
                 const categoryCount = allTools.filter(t => t.category === category).length
                 return (
-                  <div 
-                    className="category-card" 
-                    key={category} 
-                    data-category={category}
-                    data-prevent-default="true"
-                  >
+                  <div className="category-card" key={category} data-category={category}>
                     <div className="category-icon">
                       <CategoryIcon category={category} />
                     </div>
@@ -934,46 +851,11 @@ async function HomePageContent({
               <div className="footer-column">
                 <h3>روابط سريعة</h3>
                 <ul className="footer-links">
-                  <li>
-                    <button 
-                      data-section="home"
-                      data-prevent-default="true"
-                    >
-                      الرئيسية
-                    </button>
-                  </li>
-                  <li>
-                    <button 
-                      data-section="tools"
-                      data-prevent-default="true"
-                    >
-                      الأدوات
-                    </button>
-                  </li>
-                  <li>
-                    <button 
-                      data-section="categories"
-                      data-prevent-default="true"
-                    >
-                      الفئات
-                    </button>
-                  </li>
-                  <li>
-                    <button 
-                      data-section="about"
-                      data-prevent-default="true"
-                    >
-                      من نحن
-                    </button>
-                  </li>
-                  <li>
-                    <button 
-                      data-section="contact"
-                      data-prevent-default="true"
-                    >
-                      اتصل بنا
-                    </button>
-                  </li>
+                  <li><button>الرئيسية</button></li>
+                  <li><button>الأدوات</button></li>
+                  <li><button>الفئات</button></li>
+                  <li><button>من نحن</button></li>
+                  <li><button>اتصل بنا</button></li>
                 </ul>
               </div>
               
@@ -993,16 +875,17 @@ async function HomePageContent({
           </div>
         </footer>
 
-        <button 
-          className="back-to-top" 
-          id="backToTop" 
-          aria-label="العودة للأعلى"
-        >
+        <button className="back-to-top" id="backToTop" aria-label="العودة للأعلى">
           <i className="fas fa-arrow-up"></i>
         </button>
-      </main>
 
-      <ClientApp />
+        <button className="install-btn" id="installBtn" style={{ display: 'none' }}>
+          <i className="fas fa-download"></i>
+          <span>تثبيت التطبيق</span>
+        </button>
+
+        <div className="toast-container" id="toastContainer"></div>
+      </main>
     </>
   )
 }
