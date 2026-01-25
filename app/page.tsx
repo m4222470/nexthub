@@ -19,7 +19,7 @@
  */
 
 import { Suspense } from "react"
-import InteractiveControls from './InteractiveControls.client'
+import InteractiveControls from './components/InteractiveControls.client'
 
 // ==============================
 // 1️⃣ Type Definitions
