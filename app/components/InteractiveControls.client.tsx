@@ -300,7 +300,24 @@ export default function InteractiveControls() {
     </button>
   )
 
-  // ========== RETURN كـ JSX (التعديل الأساسي) ==========
+  const FooterLinks = () => (
+    <ul className="footer-links">
+      {['home', 'tools', 'categories', 'features', 'testimonials', 'contact'].map((section) => (
+        <li key={section}>
+          <button onClick={() => scrollToSection(section)}>
+            {section === 'home' && 'الرئيسية'}
+            {section === 'tools' && 'الأدوات'}
+            {section === 'categories' && 'الفئات'}
+            {section === 'features' && 'لماذا ToolHub؟'}
+            {section === 'testimonials' && 'آراء المستخدمين'}
+            {section === 'contact' && 'اتصل بنا'}
+          </button>
+        </li>
+      ))}
+    </ul>
+  )
+
+  // ========== RETURN كـ JSX (بلا Pagination) ==========
 
   return (
     <>
@@ -311,6 +328,7 @@ export default function InteractiveControls() {
       <SortSelect />
       <ViewToggle />
       <BackToTop />
+      <FooterLinks />
     </>
   )
 }
